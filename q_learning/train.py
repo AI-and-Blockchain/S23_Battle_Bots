@@ -1,3 +1,12 @@
+import tensorflow as tf
+import numpy as np
+from getAction import get_action
+from checkIfDone import check_if_done
+from kaggle_environments import make
+from model import create_model, train_step
+
+LEARNING_RATE = 0.001
+
 #https://gist.github.com/leeschmalz/1b733278792ce751f0a9c2d2de3323b0
 class Memory:
     def __init__(self): 
@@ -22,6 +31,10 @@ optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
 env = make("connectx", debug=True)
 memory = Memory()
 epsilon = 1
+win_count = 0
+
+player_1_model = create_model()
+player_2_model = create_model()
 
 for i_episode in range(40000):
     
@@ -61,3 +74,4 @@ for i_episode in range(40000):
                      rewards = memory.rewards)
             
             break
+
