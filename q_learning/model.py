@@ -1,17 +1,19 @@
+import tensorflow as tf
+
 #https://gist.github.com/leeschmalz/fd5535477f276c5e9b965c6c1ea13cbd
 def create_model():
-    model = models.Sequential()
+    model = tf.keras.Sequential()
     
-    model.add(Flatten())
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(50, activation='relu'))
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layers(50, activation='relu'))
+    model.add(tf.keras.layer(50, activation='relu'))
     
-    model.add(Dense(7))
+    model.add(tf.keras.layers(7))
     
     return model
    

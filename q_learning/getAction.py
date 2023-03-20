@@ -1,3 +1,5 @@
+import numpy as np
+
 #https://gist.github.com/leeschmalz/15dee812ce23d61448fde424c6a6a6e8
 def get_action(model, observation, epsilon):
     #determine whether model action or random action based on epsilon
