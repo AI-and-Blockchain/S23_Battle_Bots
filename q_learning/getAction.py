@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 #https://gist.github.com/leeschmalz/15dee812ce23d61448fde424c6a6a6e8
 def get_action(model, observation, epsilon):

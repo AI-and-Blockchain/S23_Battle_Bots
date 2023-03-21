@@ -14,7 +14,7 @@ def create_model():
     model.add(tf.keras.layer(50, activation='relu'))
     
     model.add(tf.keras.layers(7))
-    
+
     return model
    
 def compute_loss(logits, actions, rewards): 
