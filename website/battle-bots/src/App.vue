@@ -38,19 +38,19 @@
     </v-app-bar>
 
     <v-main>
-      <HelloWorld/>
+      <ConnectFour/>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import ConnectFour from './components/ConnectFour';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    ConnectFour,
   },
 
   data: () => ({
