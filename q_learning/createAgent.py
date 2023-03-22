@@ -1,9 +1,8 @@
 from getAction import get_action
 
 #https://gist.github.com/leeschmalz/7e41fa39a9d734b3483dcfeef55efc9a
-def check_if_action_valid(obs,action):
+def check_if_action_valid(obs, action):
     if obs[action] == 0:
-        
         valid = True
     else:
         valid = False
