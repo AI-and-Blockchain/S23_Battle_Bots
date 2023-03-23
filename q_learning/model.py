@@ -31,15 +31,15 @@ class Model:
         model = tf.keras.Sequential()
         
         model.add(tf.keras.layers.Flatten())
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layers(50, activation='relu'))
-        model.add(tf.keras.layer(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
+        model.add(tf.keras.layers.Dense(50, activation='relu'))
         
-        model.add(tf.keras.layers(7))
+        model.add(tf.keras.layers.Dense(7))
 
         return model
    
@@ -72,17 +72,17 @@ class Model:
         with open(tflite_model_file_path, 'wb') as f:
             f.write(tflite_model)
 
-    def load_player_model(self, player_model_id):
-        # TODO: Lookup the player model in the blockchain/Oracle
-        # TODO: Return it, if found. Otherwise, return a new model
-        return Model()
-    
-    def save_player_model(self, player_model_id):
-        # TODO: Save the player model to the blockchain/Oracle
-        # Return the request
-        pass
+def load_player_model(player_model_id):
+    # TODO: Lookup the player model in the blockchain/Oracle
+    # TODO: Return it, if found. Otherwise, return a new model
+    return Model()
 
-    def save_actions(self, actions):
-        # TODO: Save the actions to the blockchain/Oracle
-        # Return the request
-        pass
+def save_player_model(player_model_id, player_model):
+    # TODO: Save the player model to the blockchain/Oracle
+    # Return the request
+    pass
+
+def save_actions(actions):
+    # TODO: Save the actions to the blockchain/Oracle
+    # Return the request
+    pass

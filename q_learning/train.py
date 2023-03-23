@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from kaggle_environments import make
-from model import train_step, load_player_model, save_player_model, save_actions, Memory
+from model import load_player_model, save_player_model, save_actions, Memory
 from connect4 import Connect4
 
 
@@ -9,7 +9,8 @@ LEARNING_RATE = 0.001
 
 
 def play_battle_bots(board, env, memory, player_1_model, player_2_model):
-    trainer = env.train([None, None])        
+    print('Playing Battle Bots...')
+    trainer = env.train([None, 'random'])        
     observation = trainer.reset()['board']
     memory.clear()
 
@@ -26,7 +27,7 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     overflow = False
     actions = []
     i = 0
-    while i:
+    while True:
         # Player 1 and Player 2 alternate taking turns
         if i % 2 == 0:
             current_player = player_1_model
@@ -35,7 +36,6 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
         # Find the next action for the player to take
         action, _ = board.get_action(current_player, observation, current_player.epsilon)
-
         # This is another option for getting the action, chooses the next highest probability action
         # when an invalid action is encountered
         # action = board.player_agent_action(current_player, observation)
@@ -62,12 +62,13 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
         
         # Update the model of both battle bots after the game is over
         if winner_found:
-            train_step(player_1_model, optimizer,
+            print("Winner Found, Updating models...")
+            player_1_model.train_step(optimizer,
                     observations=np.array(memory.observations),
                     actions=np.array(memory.actions),
                     rewards = memory.rewards)
             
-            train_step(player_2_model, optimizer,
+            player_2_model.train_step(optimizer,
                     observations=np.array(memory.observations),
                     actions=np.array(memory.actions),
                     rewards = memory.rewards)
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     board = Connect4()
     new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
 
-    save_player_model(new_player_1_model, player_1_model_id)
-    save_player_model(new_player_2_model, player_2_model_id)
+    save_player_model(player_1_model_id, new_player_1_model)
+    save_player_model(player_2_model_id, new_player_2_model)
 
     save_actions(actions)
