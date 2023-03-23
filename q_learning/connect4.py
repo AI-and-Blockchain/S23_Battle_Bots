@@ -1,12 +1,13 @@
 import numpy as np
 import tensorflow as tf
+from typing import Tuple
 
 class Connect4:
-  def get_action(self, model, observation, epsilon):
+  def get_action(self, player_model, observation, epsilon):
     #determine whether model action or random action based on epsilon
-    act = np.random.choice(['model','random'], 1, p=[1-epsilon, epsilon])[0]
-    observation = np.array(observation).reshape(1,6,7,1)
-    logits = model.predict(observation)
+    act = np.random.choice(['model','random'], 1, p=[1 - epsilon, epsilon])[0]
+    observation = np.array(observation).reshape(1, 6, 7, 1)
+    logits = player_model.model.predict(observation)
     prob_weights = tf.nn.softmax(logits).numpy()
     
     if act == 'model':
@@ -17,42 +18,43 @@ class Connect4:
     return action, prob_weights[0]
 
   def check_if_done(self, observation):
-    done = [False,'No Winner Yet']
+    done = (False, 'No Winner Yet')
     # vertical check
     for j in range(7):
         for i in range(3):
-            if observation[i][j] == observation[i+1][j] == observation[i+2][j] == observation[i+3][j] == 1:
-                done = [True, 'Player 1 Wins Vertical']
-            if observation[i][j] == observation[i+1][j] == observation[i+2][j] == observation[i+3][j] == 2:
-                done = [True, 'Player 2 Wins Vertical']
+            if observation[i][j] == observation[i + 1][j] == observation[i + 2][j] == observation[i + 3][j] == 1:
+                done = (True, 'Player 1 Wins Vertical')
+            if observation[i][j] == observation[i + 1][j] == observation[i + 2][j] == observation[i + 3][j] == 2:
+                done = (True, 'Player 2 Wins Vertical')
 
     #horizontal check
     for i in range(6):
         for j in range(4):
-            if observation[i][j] == observation[i][j+1] == observation[i][j+2] == observation[i][j+3] == 1:
-                done = [True,'Player 1 Wins Horizontal']
-            if observation[i][j] == observation[i][j+1] == observation[i][j+2] == observation[i][j+3] == 2:
-                done = [True,'Player 2 Wins Horizontal']
+            if observation[i][j] == observation[i][j + 1] == observation[i][j + 2] == observation[i][j + 3] == 1:
+                done = (True, 'Player 1 Wins Horizontal')
+            if observation[i][j] == observation[i][j + 1] == observation[i][j + 2] == observation[i][j + 3] == 2:
+                done = (True, 'Player 2 Wins Horizontal')
 
     #diagonal check top left to bottom right
     for row in range(3):
         for col in range(4):
             if observation[row][col] == observation[row + 1][col + 1] == observation[row + 2][col + 2] == observation[row + 3][col + 3] == 1:
-                done = [True,'Player 1 Wins Diagonal']
+                done = (True, 'Player 1 Wins Diagonal')
             if observation[row][col] == observation[row + 1][col + 1] == observation[row + 2][col + 2] == observation[row + 3][col + 3] == 2:
-                done = [True,'Player 2 Wins Diagonal']
+                done = (True, 'Player 2 Wins Diagonal')
     
     #diagonal check bottom left to top right
     for row in range(5, 2, -1):
         for col in range(3):
             if observation[row][col] == observation[row - 1][col + 1] == observation[row - 2][col + 2] == observation[row - 3][col + 3] == 1:
-                done = [True,'Player 1 Wins Diagonal']
+                done = (True, 'Player 1 Wins Diagonal')
             if observation[row][col] == observation[row - 1][col + 1] == observation[row - 2][col + 2] == observation[row - 3][col + 3] == 2:
-                done = [True,'Player 2 Wins Diagonal']
+                done = (True, 'Player 2 Wins Diagonal')
+
     return done
   
   # Easiest to Hardest: Vertical (10), Horizontal (20), Diagonal (30)
-  def find_rewards(self, done, overflow):
+  def find_rewards(self, done: Tuple[bool, int], overflow: bool):
     assert(done and len(done) == 2)
 
     winner_found, win_type = done
@@ -77,9 +79,9 @@ class Connect4:
         valid = False
     return valid
 
-  def player_1_agent(self, observation, player_1_model):
-      action, prob_weights = self.get_action(player_1_model,observation['board'],0)
-      if self.check_if_action_valid(observation['board'],action):
+  def player_agent_action(self, observation, player_model):
+      action, prob_weights = self.get_action(player_model, observation['board'] ,0)
+      if self.check_if_action_valid(observation['board'], action):
           return action
       else:
           while True:
@@ -89,7 +91,7 @@ class Connect4:
                   if prob < previous_prob_weight and prob > temp_prob:
                       temp_prob = prob
                       action = list(prob_weights).index(temp_prob)
-              if self.check_if_action_valid(observation['board'],action):
+              if self.check_if_action_valid(observation['board'], action):
                   break
               
       return action

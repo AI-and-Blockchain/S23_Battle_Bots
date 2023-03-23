@@ -1,6 +1,23 @@
 import tensorflow as tf
 import tensorflow.lite as tflite
 
+#https://gist.github.com/leeschmalz/1b733278792ce751f0a9c2d2de3323b0
+class Memory:
+    def __init__(self): 
+        self.clear()
+
+    # Resets/restarts the memory buffer
+    def clear(self): 
+        self.observations = []
+        self.actions = []
+        self.rewards = []
+        self.info = []
+        
+    def add_to_memory(self, new_observation, new_action, new_reward): 
+        self.observations.append(new_observation)
+        self.actions.append(new_action)
+        self.rewards.append(float(new_reward))
+
 #https://gist.github.com/leeschmalz/fd5535477f276c5e9b965c6c1ea13cbd
 class Model:
     def __init__(self) -> None:
@@ -8,6 +25,7 @@ class Model:
         self.win_count = 0
         self.epsilon = 1
         self.reward = 0
+        self.name = ''
 
     def create_model(self):
         model = tf.keras.Sequential()
@@ -58,3 +76,8 @@ class Model:
         # TODO: Lookup the player model in the blockchain/Oracle
         # TODO: Return it, if found. Otherwise, return a new model
         return Model()
+    
+    def save_player_model(self, player_model_id):
+        # TODO: Save the player model to the blockchain/Oracle
+        # Return the request
+        pass
