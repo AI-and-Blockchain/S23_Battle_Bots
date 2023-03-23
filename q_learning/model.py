@@ -79,18 +79,29 @@ class Model:
         self.win_count = 0
         self.reward = 0
 
-def load_player_model(player_model_id):
+def load_player_model(player_model_id, player_model_name):
     # TODO: Lookup the player model in the blockchain/Oracle
     # TODO: Return it, if found. Otherwise, return a new model
-    retrieved_model = Model('Player 1')
-    return False, retrieved_model
+    # retrieved_model = db.lookup(player_model_id)
+    retrieved_model = None
+
+    if retrieved_model is None:
+        print(f'Could not find player model with id {player_model_id} and name {player_model_name}')
+        print('Creating a new one from scratch with random weights...')
+        retrieved_model = Model(player_model_name)
+
+    return retrieved_model
 
 def save_player_model(player_model_id, player_model):
     # TODO: Save the player model to the blockchain/Oracle
-    # Return the request
+    # Return the response
+    # response = db.save(player_model_id, player_model)
+    # return response
     pass
 
-def save_actions(actions):
+def save_actions(player_model_id, actions):
     # TODO: Save the actions to the blockchain/Oracle
-    # Return the request
+    # Return the response
+    # response = db.save(player_model_id, actions)
+    # return response
     pass
