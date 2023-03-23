@@ -20,12 +20,12 @@ class Memory:
 
 #https://gist.github.com/leeschmalz/fd5535477f276c5e9b965c6c1ea13cbd
 class Model:
-    def __init__(self) -> None:
+    def __init__(self, name = '') -> None:
         self.model = self.create_model()
         self.win_count = 0
         self.epsilon = 1
         self.reward = 0
-        self.name = ''
+        self.name = name
 
     def create_model(self):
         model = tf.keras.Sequential()
@@ -72,10 +72,18 @@ class Model:
         with open(tflite_model_file_path, 'wb') as f:
             f.write(tflite_model)
 
+    def decay_epsilon(self):
+        self.epsilon = self.epsilon * 0.99985
+
+    def reset(self):
+        self.win_count = 0
+        self.reward = 0
+
 def load_player_model(player_model_id):
     # TODO: Lookup the player model in the blockchain/Oracle
     # TODO: Return it, if found. Otherwise, return a new model
-    return Model()
+    retrieved_model = Model('Player 1')
+    return False, retrieved_model
 
 def save_player_model(player_model_id, player_model):
     # TODO: Save the player model to the blockchain/Oracle
