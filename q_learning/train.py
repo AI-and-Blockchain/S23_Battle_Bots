@@ -10,18 +10,17 @@ LEARNING_RATE = 0.001
 
 def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     print('Playing Battle Bots...')
+
+    # Reset the environment and get the initial state of the board
     trainer = env.train([None, 'random'])        
     observation = trainer.reset()['board']
     memory.clear()
 
-    player_1_model.epsilon = player_1_model.epsilon * .99985
-    player_2_model.epsilon = player_2_model.epsilon * .99985
-
-    player_1_model.reward = 0
-    player_2_model.reward = 0
-
-    player_1_model.name = 'Player 1'
-    player_2_model.name = 'Player 2'
+    # Reset the models for both players and decay the epsilon value
+    players = (player_1_model, player_2_model)
+    for player in players:
+        player.reset()
+        player.decay_epsilon()
 
     current_player = None
     overflow = False
@@ -79,18 +78,24 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     return player_1_model, player_2_model, actions
 
 if __name__ == '__main__':
-    #train player 1 against random agent
+    # Set the float precision to 64-bit
     tf.keras.backend.set_floatx('float64')
     optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
 
     env = make("connectx", debug=True)
     memory = Memory()
 
+    # Load the models for both players
     player_1_model_id = 'A'
-    player_1_model = load_player_model(player_1_model_id)
-
+    player_1_model_name = 'Player 1'
+    found_player_1_model, player_1_model = load_player_model(player_1_model_id)
+    if not found_player_1_model:
+        print(f'Could not find player model with id {player_1_model_id}')
+        print('Creating a new one from scratch with new weights...')
+        player_1_model = Model(player_1_model_name)
     player_2_model_id = 'B'
-    player_2_model = load_player_model(player_2_model_id)
+    player_2_model_name = 'Player 2'
+    found_player_2_model, player_2_model = load_player_model(player_2_model_id)
 
     board = Connect4()
     new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
