@@ -81,3 +81,8 @@ class Model:
         # TODO: Save the player model to the blockchain/Oracle
         # Return the request
         pass
+
+    def save_actions(self, actions):
+        # TODO: Save the actions to the blockchain/Oracle
+        # Return the request
+        pass
