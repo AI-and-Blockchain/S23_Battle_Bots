@@ -1,10 +1,10 @@
 import os
 import torch
+import io
 import torch.nn as nn
 import torch.optim as optim
 import pymongo
 from pymongo import MongoClient
-
 class MyMongoDB:
     '''
     mydb = MyMongoDB("mydatabase", "mycollection")
@@ -130,11 +130,14 @@ class Model:
 def load_player_model(player_model_id, player_model_name, db):
     # TODO: Lookup the player model in the blockchain/Oracle
     # TODO: Return it, if found. Otherwise, return a new model
-    # query = {'model_id': player_model_id, 'model_name': player_model_name}
-    # retrieved_model = db.lookup(query)
+    query = {'model_id': player_model_id, 'model_name': player_model_name}
+    response = db.get_data(query)
     retrieved_model = None
 
-    if retrieved_model is None:
+    if response:
+        model_data = response['model']
+        retrieved_model.model.load_state_dict(torch.load(io.BytesIO(model_data)))
+    else:
         print(f'Could not find player model with id {player_model_id} and name {player_model_name}')
         print('Creating a new one from scratch with random weights...')
         retrieved_model = Model(player_model_name)
@@ -161,12 +164,12 @@ def save_player_model(player_model_id, player_model_name, player_model, db):
 
     return inserted_id
 
-def save_actions(player_model_id, actions):
+def save_actions(player_model_id, actions, db):
     # TODO: Save the actions to the blockchain/Oracle
-    # Return the response
-    # response = db.save(player_model_id, actions)
-    # return response
-    pass
+    query = {'model_id': player_model_id, 'actions': actions}
+    response = db.insert_data(query)
+    print("Inserted document with ID:", response)
+    return response
 
 '''TODO:
 1. a function that returns the winner of the game given two model ids
