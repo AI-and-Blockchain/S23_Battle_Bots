@@ -1,3 +1,2 @@
-numpy
-tensorflow
+torch
 kaggle_environments

@@ -1,5 +1,5 @@
 import numpy as np
-import tensorflow as tf
+import torch
 from typing import Tuple
 
 class Connect4:
@@ -8,7 +8,7 @@ class Connect4:
     act = np.random.choice(['model','random'], 1, p=[1 - epsilon, epsilon])[0]
     observation = np.array(observation).reshape(1, 6, 7, 1)
     logits = player_model.model.predict(observation)
-    prob_weights = tf.nn.softmax(logits).numpy()
+    prob_weights = torch.nn.functional.softmax(logits, dim=-1).numpy()
     
     if act == 'model':
         action = list(prob_weights[0]).index(max(prob_weights[0]))
