@@ -1,12 +1,10 @@
 import tensorflow as tf
 import numpy as np
 from kaggle_environments import make
-from model import load_player_model, save_player_model, save_actions, Memory
+from model import load_player_model, save_player_model, save_actions, Memory, Model
 from connect4 import Connect4
 
-
 LEARNING_RATE = 0.001
-
 
 def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     print('Playing Battle Bots...')
@@ -88,19 +86,23 @@ if __name__ == '__main__':
     # Load the models for both players
     player_1_model_id = 'A'
     player_1_model_name = 'Player 1'
-    found_player_1_model, player_1_model = load_player_model(player_1_model_id)
-    if not found_player_1_model:
-        print(f'Could not find player model with id {player_1_model_id}')
-        print('Creating a new one from scratch with new weights...')
-        player_1_model = Model(player_1_model_name)
+    player_1_model = load_player_model(player_1_model_id, player_1_model_name)
+
+
     player_2_model_id = 'B'
     player_2_model_name = 'Player 2'
-    found_player_2_model, player_2_model = load_player_model(player_2_model_id)
+    player_2_model = load_player_model(player_2_model_id, player_2_model_name)
 
+    # Create the Connect 4 board
     board = Connect4()
+
+    # Have the two battle bots from the players compete against each other
     new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
 
+    # Update the player models associated with each player
     save_player_model(player_1_model_id, new_player_1_model)
     save_player_model(player_2_model_id, new_player_2_model)
 
-    save_actions(actions)
+    # Save the actions for the game associated with each player
+    save_actions(player_1_model_id, actions)
+    save_actions(player_2_model_id, actions)
