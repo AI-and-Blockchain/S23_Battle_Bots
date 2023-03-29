@@ -11,8 +11,8 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
     # Reset the environment and get the initial state of the board
     trainer = env.train([None, 'random'])
-    observation = trainer.reset()['board']
     memory.clear()
+    observation = trainer.reset()['board']
 
     # Reset the models for both players and decay the epsilon value
     players = (player_1_model, player_2_model)
@@ -38,7 +38,12 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
         # Take the step on the current state of the board
         # and observe the new board state
-        next_observation, _, overflow, _ = trainer.step(action)
+        try:
+            next_observation, _, overflow, _ = trainer.step(action)
+        except FailedPrecondition:
+            observation = trainer.reset()['board']
+            memory.clear()
+
         observation = next_observation['board']
         observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
 
@@ -65,6 +70,7 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
                     observations=torch.cat(memory.observations),
                     actions=torch.tensor(memory.actions),
                     rewards = torch.tensor(memory.rewards))
+
             break
 
         i += 1
