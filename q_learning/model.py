@@ -1,6 +1,60 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pymongo
+from pymongo import MongoClient
+
+class MyMongoDB:
+    '''
+    mydb = MyMongoDB("mydatabase", "mycollection")
+
+    data = {"name": "John", "age": 30, "city": "New York"}
+    inserted_id = mydb.insert_data(data)
+    print("Inserted document with ID:", inserted_id)
+
+    all_data = mydb.get_data()
+    print("All documents in collection:", all_data)
+
+    query = {"name": "John"}
+    john_data = mydb.get_data(query)
+    print("Documents with name='John':", john_data)
+
+    query = {"name": "John"}
+    deleted_count = mydb.delete_data(query)
+    print("Deleted", deleted_count, "documents from collection")
+
+    query = {"name": "John"}
+    new_data = {"age": 35}
+    modified_count = mydb.update_data(query, new_data)
+    print("Modified", modified_count, "documents in collection")
+    '''
+    def __init__(self, db_name, collection_name):
+        self.client = MongoClient()
+        self.db = self.client[db_name]
+        self.collection = self.db[collection_name]
+        
+    def insert_data(self, data):
+        result = self.collection.insert_one(data)
+        return result.inserted_id
+        
+    def get_data(self, query=None):
+        if query:
+            data = []
+            for doc in self.collection.find(query):
+                data.append(doc)
+            return data
+        else:
+            return list(self.collection.find())
+
+    def delete_data(self, query):
+        result = self.collection.delete_one(query)
+        return result.deleted_count
+        
+    def update_data(self, query, data):
+        result = self.collection.update_one(query, {"$set": data})
+        return result.modified_count
+
 
 #https://gist.github.com/leeschmalz/1b733278792ce751f0a9c2d2de3323b0
 class Memory:
@@ -65,17 +119,6 @@ class Model:
         loss.backward()
         self.optimizer.step()
 
-    def convert_model(self, model_file_path):
-        # Save the model to a file
-        torch.save(self.model, model_file_path)
-
-        # Convert the model to a TorchScript model
-        # traced_model = torch.jit.trace(self.model, torch.randn(42))
-        
-        # Save the TorchScript model to a file
-        # traced_model_file_path = f'{model_file_path}/model.pt'
-        # traced_model.save(traced_model_file_path)
-
     def decay_epsilon(self):
         self.epsilon = self.epsilon * 0.99985
 
@@ -84,10 +127,11 @@ class Model:
         self.reward = 0
 
 
-def load_player_model(player_model_id, player_model_name):
+def load_player_model(player_model_id, player_model_name, db):
     # TODO: Lookup the player model in the blockchain/Oracle
     # TODO: Return it, if found. Otherwise, return a new model
-    # retrieved_model = db.lookup(player_model_id)
+    # query = {'model_id': player_model_id, 'model_name': player_model_name}
+    # retrieved_model = db.lookup(query)
     retrieved_model = None
 
     if retrieved_model is None:
@@ -97,17 +141,44 @@ def load_player_model(player_model_id, player_model_name):
 
     return retrieved_model
 
-def save_player_model(player_model_id, player_model):
+def save_player_model(player_model_id, player_model_name, player_model, db):
     # TODO: Save the player model to the blockchain/Oracle
-    # Return the response
-    # response = db.save(player_model_id, player_model)
-    # return response
-    player_model.convert_model(player_model_id)
-    pass
+    # Save the model to a file
+    if not os.path.exists('./models'):
+        os.makedirs('./models')
+
+    model_file_path = f'./models/{player_model_name}.pt'
+    torch.save(player_model.state_dict(), model_file_path)
+
+    # Load the saved model into memory as binary data
+    with open(model_file_path, "rb") as f:
+        model_data = f.read()
+
+    # Insert the model data into MongoDB
+    data = {'model_id': player_model_id, 'model_name': player_model_name, 'model': pymongo.binary.Binary(model_data)}
+    inserted_id = db.insert_data(data)
+    print("Inserted document with ID:", inserted_id)
+
+    return inserted_id
 
 def save_actions(player_model_id, actions):
     # TODO: Save the actions to the blockchain/Oracle
     # Return the response
     # response = db.save(player_model_id, actions)
     # return response
+    pass
+
+'''TODO:
+1. a function that returns the winner of the game given two model ids
+2. a function that given an id creates a new model and stores it with that id
+3. a function that given a model id deletes the model
+'''
+
+def get_winner(model_id_1, model_id_2):
+    pass
+
+def create_new_model(model_id):
+    pass
+
+def delete_model(model_id):
     pass
