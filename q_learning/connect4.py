@@ -1,21 +1,23 @@
 import numpy as np
 import torch
 from typing import Tuple
+import torch.nn.functional as F
 
 class Connect4:
   def get_action(self, player_model, observation, epsilon):
     #determine whether model action or random action based on epsilon
     act = np.random.choice(['model','random'], 1, p=[1 - epsilon, epsilon])[0]
-    observation = np.array(observation).reshape(1, 6, 7, 1)
-    logits = player_model.model.predict(observation)
-    prob_weights = torch.nn.functional.softmax(logits, dim=-1).numpy()
+    observation = torch.from_numpy(np.array(observation)).float().unsqueeze(0)
+    logits = player_model.model(observation)
+    prob_weights = F.softmax(logits, dim=1).detach().numpy()[0]
     
     if act == 'model':
-        action = list(prob_weights[0]).index(max(prob_weights[0]))
+        action = list(prob_weights).index(max(prob_weights))
     if act == 'random':
         action = np.random.choice(7)
         
-    return action, prob_weights[0]
+    return action, prob_weights
+
 
   def check_if_done(self, observation):
     done = (False, 'No Winner Yet')
@@ -80,7 +82,7 @@ class Connect4:
     return valid
 
   def player_agent_action(self, observation, player_model):
-      action, prob_weights = self.get_action(player_model, observation['board'] ,0)
+      action, prob_weights = self.get_action(player_model, observation['board'], 0)
       if self.check_if_action_valid(observation['board'], action):
           return action
       else:

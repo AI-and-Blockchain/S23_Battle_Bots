@@ -1,4 +1,4 @@
-import tensorflow as tf
+import torch
 import numpy as np
 from kaggle_environments import make
 from model import load_player_model, save_player_model, save_actions, Memory, Model
@@ -10,7 +10,7 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     print('Playing Battle Bots...')
 
     # Reset the environment and get the initial state of the board
-    trainer = env.train([None, 'random'])        
+    trainer = env.train([None, 'random'])
     observation = trainer.reset()['board']
     memory.clear()
 
@@ -33,10 +33,6 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
         # Find the next action for the player to take
         action, _ = board.get_action(current_player, observation, current_player.epsilon)
-        # This is another option for getting the action, chooses the next highest probability action
-        # when an invalid action is encountered
-        # action = board.player_agent_action(current_player, observation)
-
         # Add the action to the list of actions taken along with the player's name
         actions.append((current_player.name, action))
 
@@ -44,7 +40,7 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
         # and observe the new board state
         next_observation, _, overflow, _ = trainer.step(action)
         observation = next_observation['board']
-        observation = [float(i) for i in observation]
+        observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
 
         # Check if a player won
         done = board.check_if_done(np.array(observation).reshape(6, 7))
@@ -54,21 +50,21 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
         # on the new, updated board state
         reward = board.find_rewards(done, overflow)
         current_player.reward += reward
-        
-        memory.add_to_memory(np.array(observation).reshape(6, 7, 1), action, reward)
-        
+
+        memory.add_to_memory(observation, action, reward)
+
         # Update the model of both battle bots after the game is over
         if winner_found:
             print("Winner Found, Updating models...")
-            player_1_model.train_step(optimizer,
-                    observations=np.array(memory.observations),
-                    actions=np.array(memory.actions),
-                    rewards = memory.rewards)
+            player_1_model.train_step(
+                    observations=torch.cat(memory.observations),
+                    actions=torch.tensor(memory.actions),
+                    rewards = torch.tensor(memory.rewards))
             
-            player_2_model.train_step(optimizer,
-                    observations=np.array(memory.observations),
-                    actions=np.array(memory.actions),
-                    rewards = memory.rewards)
+            player_2_model.train_step(
+                    observations=torch.cat(memory.observations),
+                    actions=torch.tensor(memory.actions),
+                    rewards = torch.tensor(memory.rewards))
             break
 
         i += 1
@@ -76,10 +72,6 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
     return player_1_model, player_2_model, actions
 
 if __name__ == '__main__':
-    # Set the float precision to 64-bit
-    tf.keras.backend.set_floatx('float64')
-    optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
-
     env = make("connectx", debug=True)
     memory = Memory()
 
