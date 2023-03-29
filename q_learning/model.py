@@ -70,11 +70,11 @@ class Model:
         torch.save(self.model, model_file_path)
 
         # Convert the model to a TorchScript model
-        traced_model = torch.jit.trace(self.model, torch.randn(1, 1, 28, 28))
+        # traced_model = torch.jit.trace(self.model, torch.randn(42))
         
         # Save the TorchScript model to a file
-        traced_model_file_path = f'{model_file_path}/model.pt'
-        traced_model.save(traced_model_file_path)
+        # traced_model_file_path = f'{model_file_path}/model.pt'
+        # traced_model.save(traced_model_file_path)
 
     def decay_epsilon(self):
         self.epsilon = self.epsilon * 0.99985
@@ -102,6 +102,7 @@ def save_player_model(player_model_id, player_model):
     # Return the response
     # response = db.save(player_model_id, player_model)
     # return response
+    player_model.convert_model(player_model_id)
     pass
 
 def save_actions(player_model_id, actions):
