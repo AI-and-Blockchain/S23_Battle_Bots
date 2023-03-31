@@ -155,14 +155,14 @@ create_app(my_client,pr_a,approval_bytes,clear_bytes,
     local_schema,
 )
 
-purestake_token = {'X-Api-key': "1sAOEAI4mA8zfmlrSg5K51xB3ryOkYAl4BJIL8zU"}
-pr_a = "Cc2qpZLvStGOu4UEenIIF0D11hkHqLDvOZuqpfkVYtWCI+buEW6umI6RdgX18wYA1fB5VHs2jy7y5DggPrbruQ=="
-pu_a = "QIR6N3QRN2XJRDUROYC7L4YGADK7A6KUPM3I6LXS4Q4CAPVW5O4RC4WTGY"
-pr_b = "9ygON9m6Wx8XFySdMsO8MDDAy+ZgErBH6uFtAT3wECitRH4JVNRHjg7AQXAtvvOox09ZXr6CRyIJm2XaQgYOEQ=="
-pu_b = "VVCH4CKU2RDY4DWAIFYC3PXTVDDU6WK6X2BEOIQJTNS5UQQGBYI2OJUUGU"
-pr_c = "YRON/0LcFlz5yrT311GW+gRgpZegV/DtC1kPNjYRiC269g1mUD/O+FZwm1oiMzw5I9XO06HoPgfJStjHk/+5BA=="
-pu_c = "XL3A2ZSQH7HPQVTQTNNCEMZ4HER5LTWTUHUD4B6JJLMMPE77XECBS6EH7I"
-my_client = algod.AlgodClient("1sAOEAI4mA8zfmlrSg5K51xB3ryOkYAl4BJIL8zU","https://testnet-algorand.api.purestake.io/ps2",headers=purestake_token)
+purestake_token = {'X-Api-key': ""}
+pr_a = ""
+pu_a = ""
+pr_b = ""
+pu_b = ""
+pr_c = ""
+pu_c = ""
+my_client = algod.AlgodClient("","https://testnet-algorand.api.purestake.io/ps2",headers=purestake_token)
 
 apid = 0
 
