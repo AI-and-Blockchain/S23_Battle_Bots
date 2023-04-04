@@ -55,7 +55,12 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
         # Update the current state of rewards for both players based
         # on the new, updated board state
         reward = board.find_rewards(done, overflow)
-        current_player.reward += reward
+
+        # If the board got overflowed, return the player bots, actions, and report that no winner was found
+        if reward == -99 and overflow:
+            return player_1_bot, player_2_bot, actions, 'NotValidWinnerID'
+        else:
+            current_player.reward += reward
 
         memory.add_to_memory(observation, action, reward)
 
@@ -76,7 +81,7 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
 
         i += 1
 
-    return player_1_bot, player_2_bot, actions, current_player.name
+    return player_1_bot, player_2_bot, actions, current_player.bot_id
 
 
 if __name__ == '__main__':
@@ -104,14 +109,29 @@ if __name__ == '__main__':
     board = Connect4()
 
     # Have the two battle bots from the players compete against each other
-    player_1_bot, player_2_bot, actions, winner_name = play_battle_bots(board, env, memory, player_1_bot, player_2_bot)
+    player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, env, memory, player_1_bot, player_2_bot)
 
-    # # Update the player models associated with each player
-    # player_1_bot.save_bot()
-    # player_2_bot.save_bot()
+    if winner_id == player_1_bot.bot_id:
+        winner_name = player_1_bot.name
+        player_1_bot.win_count += 1
+    elif winner_id == player_2_bot.bot_id:
+        winner_name = player_2_bot.name
+        player_2_bot.win_count += 1
 
-    # # Save the game to the database
-    # game_id = '1'
-    # game = Game(game_id, player_1_bot, player_2_bot, winner_name, actions)
-    # game.save_game()
+    if winner_id == 'NotValidWinnerID':
+        winner_name = 'No Winner Found'
+
+    player_1_bot.total_games += 1
+    player_2_bot.total_games += 1
+
+    # Update the player models associated with each player
+    player_1_bot.save_bot()
+    player_2_bot.save_bot()
+
+    print(f'Winner: {winner_name}!!!')
+
+    # Save the game to the database
+    game_id = '1'
+    game = Game(game_id, player_1_bot.bot_id, player_2_bot.bot_id, winner_name, actions)
+    game.save_game()
 
