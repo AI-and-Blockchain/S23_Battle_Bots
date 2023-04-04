@@ -56,6 +56,8 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
         # on the new, updated board state
         reward = board.find_rewards(done, overflow)
 
+        board.print_board(observation)
+
         # If the board got overflowed, return the player bots, actions, and report that no winner was found
         if reward == -99 and overflow:
             return player_1_bot, player_2_bot, actions, 'NotValidWinnerID'
