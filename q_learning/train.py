@@ -26,6 +26,7 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
     actions = []
     i = 0
     while True:
+        print('i',i)
         # Player 1 and Player 2 alternate taking turns
         if i % 2 == 0:
             current_player = player_1_bot
@@ -34,19 +35,28 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
 
         # Find the next action for the player to take
         action, _ = board.get_action(current_player, observation, current_player.epsilon)
+        if i % 2 == 0:
+            print('Player 1 Action: ', action)
+        else:
+            print('Player 2 Action: ', action)
         # Add the action to the list of actions taken along with the player's name
         actions.append((current_player.name, action))
 
         # Take the step on the current state of the board
         # and observe the new board state
         try:
+            print('action', action)
             next_observation, _, overflow, _ = trainer.step(action)
-        except Exception:
+        except Exception as e:
+            print('Error in trainer.step: ', e)
             observation = trainer.reset()['board']
             memory.clear()
 
+        print('next_observation', next_observation)
+        next_observation['step'] -= 1
         observation = next_observation['board']
         observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
+        board.print_board(observation)
 
         # Check if a player won
         done = board.check_if_done(np.array(observation).reshape(6, 7))
@@ -56,7 +66,7 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
         # on the new, updated board state
         reward = board.find_rewards(done, overflow)
 
-        board.print_board(observation)
+        
 
         # If the board got overflowed, return the player bots, actions, and report that no winner was found
         if reward == -99 and overflow:
