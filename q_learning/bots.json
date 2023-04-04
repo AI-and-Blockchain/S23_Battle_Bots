@@ -1,1 +1,1 @@
-[]
+[{"name": "BattleBotA", "id": "A", "model_path": "./models/BattleBotA.pt"}, {"name": "BattleBotB", "id": "B", "model_path": "./models/BattleBotB.pt"}]
