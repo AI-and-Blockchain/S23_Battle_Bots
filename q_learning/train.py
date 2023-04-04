@@ -28,6 +28,7 @@ class Trainer:
         return True
 
     def step(self, action, player):
+        print('HELLOOO', action, player)
         assert(player == 1 or player == 2)
         assert(action >= 0 and action < self.num_cols)
 
@@ -75,7 +76,7 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
             current_player_token = 2
 
         # Find the next action for the player to take
-        action, _ = board.get_action(current_player, observation, current_player_token)
+        action, _ = board.get_action(current_player, observation, current_player.epsilon)
         if i % 2 == 0:
             print('Player 1 Action: ', action)
         else:
@@ -86,7 +87,7 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
         # Take the step on the current state of the board
         # and observe the new board state
         try:
-            column_overflow = trainer.step(action, current_player.bot_id)
+            column_overflow = trainer.step(action, current_player_token)
             next_observation = trainer.board
             print('next_observation', next_observation)
 
@@ -116,18 +117,34 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
         else:
             current_player.reward += reward
 
-        memory.add_to_memory(observation, action, reward)
+        def flatten(lst):
+            """
+            Flatten a nested list.
+            """
+            result = []
+            for item in lst:
+                if isinstance(item, list):
+                    result.extend(flatten(item))
+                else:
+                    result.append(item)
+            return result
+
+        memory.add_to_memory(flatten(observation), action, reward)
 
         # Update the model of both battle bots after the game is over
         if winner_found:
             print("Winner Found, Updating models...")
+            arr = np.array(memory.observations)
+            tensor = torch.tensor(arr)
+
+            print('AAAA', tensor)
             player_1_bot.train_step(
-                    observations=torch.cat(memory.observations),
+                    observations=tensor,
                     actions=torch.tensor(memory.actions),
                     rewards = torch.tensor(memory.rewards))
-            
+
             player_2_bot.train_step(
-                    observations=torch.cat(memory.observations),
+                    observations=tensor,
                     actions=torch.tensor(memory.actions),
                     rewards = torch.tensor(memory.rewards))
 
