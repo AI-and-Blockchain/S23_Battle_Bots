@@ -10,12 +10,12 @@ class Connect4:
         observation = torch.from_numpy(np.array(observation)).float().unsqueeze(0)
         logits = player_model.model(observation)
         prob_weights = F.softmax(logits, dim=1).detach().numpy()[0]
-        
+
         if act == 'model':
             action = list(prob_weights).index(max(prob_weights))
         if act == 'random':
             action = np.random.choice(7)
-            
+
         return action, prob_weights
 
 
@@ -56,7 +56,6 @@ class Connect4:
         return done
     
     def print_board(self, observation):
-        observation = observation.reshape(6, 7)
         print('=====================')
         for row in observation:
             print("| ", end="")

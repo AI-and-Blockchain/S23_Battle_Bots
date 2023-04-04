@@ -1,18 +1,56 @@
 import torch
 import numpy as np
-from kaggle_environments import make
 from model import BattleBot, Game, load_bot, Memory
 from connect4 import Connect4
 
 LEARNING_RATE = 0.001
 
-def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
+class Trainer:
+    def __init__(self):
+        self.num_rows = 6
+        self.num_cols = 7
+        self.board = []
+        for _ in range(self.num_rows):
+            self.board.append([0] * self.num_cols)
+
+    def reset(self):
+        for i in range(self.num_rows):
+            for j in range(self.num_cols):
+                self.board[i][j] = 0
+
+    def column_overflow(self, action):
+        assert(action >= 0 and action < self.num_cols)
+        # If any of the top row is non-zero, then the board has overflowed
+        for i in range(self.num_rows):
+            if self.board[i][action] == 0:
+                return False
+
+        return True
+
+    def step(self, action, player):
+        assert(player == 1 or player == 2)
+        assert(action >= 0 and action < self.num_cols)
+
+        # If the column is full, then the action is invalid
+        if self.column_overflow(action):
+            return False
+
+        # Find the first empty row in the column
+        for i in range(self.num_rows):
+            if self.board[i][action] == 0:
+                self.board[i][action] = player
+                return True
+
+        return False
+
+
+def play_battle_bots(board, memory, player_1_bot, player_2_bot):
     print('Playing Battle Bots...')
 
     # Reset the environment and get the initial state of the board
-    trainer = env.train([None, 'random'])
+    trainer = Trainer()
     memory.clear()
-    observation = trainer.reset()['board']
+    observation = trainer.board
 
     # Reset the models for both players and decay the epsilon value
     players = (player_1_bot, player_2_bot)
@@ -22,19 +60,22 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
         player.decay_epsilon()
 
     current_player = None
-    overflow = False
+    column_overflow = False
     actions = []
     i = 0
+    current_player_token = 1
+    next_observation = None
     while True:
-        print('i',i)
         # Player 1 and Player 2 alternate taking turns
         if i % 2 == 0:
             current_player = player_1_bot
+            current_player_token = 1
         else:
             current_player = player_2_bot
+            current_player_token = 2
 
         # Find the next action for the player to take
-        action, _ = board.get_action(current_player, observation, current_player.epsilon)
+        action, _ = board.get_action(current_player, observation, current_player_token)
         if i % 2 == 0:
             print('Player 1 Action: ', action)
         else:
@@ -45,31 +86,32 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
         # Take the step on the current state of the board
         # and observe the new board state
         try:
-            print('action', action)
-            next_observation, _, overflow, _ = trainer.step(action)
+            column_overflow = trainer.step(action, current_player.bot_id)
+            next_observation = trainer.board
+            print('next_observation', next_observation)
+
         except Exception as e:
             print('Error in trainer.step: ', e)
-            observation = trainer.reset()['board']
+            trainer.reset()
+            observation = trainer.board
             memory.clear()
 
-        print('next_observation', next_observation)
-        next_observation['step'] -= 1
-        observation = next_observation['board']
-        observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
+        observation = next_observation
+        print('observation', observation)
+        # observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
         board.print_board(observation)
 
         # Check if a player won
-        done = board.check_if_done(np.array(observation).reshape(6, 7))
+        done = board.check_if_done(observation)
         winner_found, _ = done
 
         # Update the current state of rewards for both players based
         # on the new, updated board state
-        reward = board.find_rewards(done, overflow)
-
-        
+        reward = board.find_rewards(done, column_overflow)
 
         # If the board got overflowed, return the player bots, actions, and report that no winner was found
-        if reward == -99 and overflow:
+        invalid_board = i >= 42 and not winner_found
+        if invalid_board:
             return player_1_bot, player_2_bot, actions, 'NotValidWinnerID'
         else:
             current_player.reward += reward
@@ -97,7 +139,6 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
 
 
 if __name__ == '__main__':
-    env = make("connectx", debug=True)
     memory = Memory()
 
     # Load the bots for both players
@@ -121,7 +162,7 @@ if __name__ == '__main__':
     board = Connect4()
 
     # Have the two battle bots from the players compete against each other
-    player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, env, memory, player_1_bot, player_2_bot)
+    player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, memory, player_1_bot, player_2_bot)
 
     if winner_id == player_1_bot.bot_id:
         winner_name = player_1_bot.name
