@@ -102,9 +102,9 @@ if __name__ == '__main__':
     new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
 
     # Update the player models associated with each player
-    save_player_model(player_1_model_id, new_player_1_model, player_models_collection)
-    save_player_model(player_2_model_id, new_player_2_model, player_models_collection)
+    save_player_model(player_1_model_id, player_1_model_name, new_player_1_model, player_models_collection)
+    save_player_model(player_2_model_id, player_2_model_name, new_player_2_model, player_models_collection)
 
     # Save the actions for the game associated with each player
-    save_actions(player_1_model_id, actions)
-    save_actions(player_2_model_id, actions)
+    save_actions(player_1_model_id, actions, actions_collection)
+    save_actions(player_2_model_id, actions, actions_collection)
