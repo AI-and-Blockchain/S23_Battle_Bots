@@ -74,91 +74,99 @@ class Model:
         self.reward = 0
 
 
-def load_player_model(player_model_id, player_model_name):
-    # TODO: Lookup the player model in the blockchain/Oracle
-    # TODO: Return it, if found. Otherwise, return a new model
-    if not os.path.exists('./models.json'):
-        with open("models.json", "w") as f:
+class BattleBot:
+    def __init__(self, name, id, model_path, model):
+        self.name = name
+        self.id = id
+        self.model_path = model_path
+        self.model = model
+        self.bots_file_path = './bots.json'
+
+        if not os.path.exists(self.bots_file_path):
+            with open(self.bots_file_path, "w") as f:
+                json.dump([], f)
+
+        # Save the model to a file
+        if not os.path.exists('./models'):
+            os.makedirs('./models')
+
+    def save_bot(self):
+        with open(self.bots_file_path, "r") as f:
+            bots_data = json.load(f)
+
+        data = {'name': self.name, 'id': self.id, 'model_path': self.model_path}
+        bots_data.append(data)
+
+        with open(self.bots_file_path, "w") as f:
+            json.dump(bots_data, f)
+
+        print("Inserted bot document with ID:", self.id)
+
+        # Actually save the model
+        torch.save(self.model, self.model_path)
+
+    def update_model(self, model):
+        self.model = model
+        self.save_bot()
+
+
+class Game:
+    def __init__(self, id, player_1, player_2, winner, actions):
+        self.id = id
+        self.player_1 = player_1
+        self.player_2 = player_2
+        self.winner = winner
+        self.actions = actions
+        self.games_file_path = './games.json'
+
+        if not os.path.exists(self.games_file_path):
+            with open(self.games_file_path, "w") as f:
+                json.dump([], f)
+
+    def save_game(self):
+        with open(self.games_file_path, "r") as f:
+            games_data = json.load(f)
+
+        data = {'id': self.id, 'player_1': self.player_1, 'player_2': self.player_2, 'winner': self.winner, 'actions': self.actions}
+        games_data.append(data)
+
+        with open(self.games_file_path, "w") as f:
+            json.dump(games_data, f)
+
+        print("Inserted game document with ID:", self.id)
+
+
+def load_bot(id):
+    if not os.path.exists('./bots.json'):
+        with open('./bots.json', "w") as f:
             json.dump([], f)
 
-    with open("models.json", "r") as f:
-        models = json.load(f)
+    with open('./bots.json', "r") as f:
+        bots_data = json.load(f)
 
-    retrieved_model = None
-    for model in models:
-        if model['model_id'] == player_model_id and model['model_name'] == player_model_name:
-            model_file_path = model['model_file_path']
-            retrieved_model = torch.load(model_file_path)
+    for bot in bots_data:
+        if bot['id'] == id:
+            print("Found bot with id", id)
+            return bot
 
-    if retrieved_model is None:
-        print(f'Could not find player model with id {player_model_id} and name {player_model_name}')
-        print('Creating a new one from scratch with random weights...')
-        retrieved_model = Model(player_model_name)
+    print("Bot with id", id, "not found")
+    return None
 
-    return retrieved_model
-
-def save_player_model(player_model_id, player_model_name, player_model):
-    # TODO: Save the player model to the blockchain/Oracle
-    # Save the model to a file
-    if not os.path.exists('./models'):
-        os.makedirs('./models')
-
-    if not os.path.exists('./models.json'):
-        with open("models.json", "w") as f:
+def load_game(id):
+    if not os.path.exists('./games.json'):
+        with open('./games.json', "w") as f:
             json.dump([], f)
 
-    model_file_path = f'./models/{player_model_name}.pt'
-    torch.save(player_model, model_file_path)
+    with open('./games.json', "r") as f:
+        games_data = json.load(f)
 
-    with open("models.json", "r") as f:
-        models_data = json.load(f)
+    for game in games_data:
+        if game['id'] == id:
+            print("Found game with id", id)
+            return game
 
-    data = {'model_id': player_model_id, 'model_name': player_model_name, 'model_file_path': model_file_path}
-    models_data.append(data)
-
-    with open("models.json", "w") as f:
-        json.dump(models_data, f)
-
-    print("Inserted document with ID:", player_model_id)
-
-    return player_model_id
-
-def save_actions(player_model_id, actions):
-    # TODO: Save the actions to the blockchain/Oracle
-    if not os.path.exists('./actions.json'):
-        with open("actions.json", "w") as f:
-            json.dump([], f)
-
-    with open("actions.json", "r") as f:
-        actions_data = json.load(f)
-
-    data = {'model_id': player_model_id, 'actions': actions}
-    actions_data.append(data)
-
-    with open("actions.json", "w") as f:
-        json.dump(actions_data, f)
-
-    print("Inserted document with ID:", player_model_id)
-    
-    return player_model_id
-
-def load_actions(player_model_id):
-    if not os.path.exists('./actions.json'):
-        with open("actions.json", "w") as f:
-            json.dump([], f)
-
-    with open("actions.json", "r") as f:
-        actions_data = json.load(f)
-
-    actions = None
-    for action in actions_data:
-        if action['model_id'] == player_model_id:
-            actions = action['actions']
-    
-    print(f'Loaded actions for model id {player_model_id}: {actions}')
-
-    return actions
-    
+    print("Game with id", id, "not found")
+    return None
 
 '''TODO:
 1. a function that returns the winner of the game given two model ids
