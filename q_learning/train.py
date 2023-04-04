@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from kaggle_environments import make
-from model import load_player_model, save_player_model, save_actions, Memory, MyMongoDB
+from model import load_player_model, save_player_model, save_actions, Memory
 from connect4 import Connect4
 
 LEARNING_RATE = 0.001
@@ -75,25 +75,21 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
         i += 1
 
-    return player_1_model, player_2_model, actions
+    return player_1_model, player_2_model, actions, current_player
 
 if __name__ == '__main__':
     env = make("connectx", debug=True)
     memory = Memory()
 
-    DB_NAME = 'battle_bots'
-    player_models_collection = MyMongoDB(DB_NAME, 'player_models')
-    actions_collection = MyMongoDB(DB_NAME, 'actions')
-
     # Load the models for both players
     player_1_model_id = 'A'
     player_1_model_name = 'Player 1'
-    player_1_model = load_player_model(player_1_model_id, player_1_model_name, player_models_collection)
+    player_1_model = load_player_model(player_1_model_id, player_1_model_name)
 
 
     player_2_model_id = 'B'
     player_2_model_name = 'Player 2'
-    player_2_model = load_player_model(player_2_model_id, player_2_model_name, player_models_collection)
+    player_2_model = load_player_model(player_2_model_id, player_2_model_name)
 
     # Create the Connect 4 board
     board = Connect4()
@@ -102,9 +98,9 @@ if __name__ == '__main__':
     new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
 
     # Update the player models associated with each player
-    save_player_model(player_1_model_id, player_1_model_name, new_player_1_model, player_models_collection)
-    save_player_model(player_2_model_id, player_2_model_name, new_player_2_model, player_models_collection)
+    save_player_model(player_1_model_id, player_1_model_name, new_player_1_model)
+    save_player_model(player_2_model_id, player_2_model_name, new_player_2_model)
 
     # Save the actions for the game associated with each player
-    save_actions(player_1_model_id, actions, actions_collection)
-    save_actions(player_2_model_id, actions, actions_collection)
+    save_actions(player_1_model_id, actions)
+    save_actions(player_2_model_id, actions)
