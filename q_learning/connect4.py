@@ -60,9 +60,9 @@ class Connect4:
         for row in observation:
             print("| ", end="")
             for val in row:
-                print(str(val.item()) + " | ", end="")
+                print(str(val) + " | ", end="")
             print("")
-            print("-" * (len(row) * 6))
+            print("-" * (len(row) * 5))
         print('=====================')
   
     # Easiest to Hardest: Vertical (10), Horizontal (20), Diagonal (30)
