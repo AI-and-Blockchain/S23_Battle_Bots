@@ -57,12 +57,14 @@ class Connect4:
     
     def print_board(self, observation):
         observation = observation.reshape(6, 7)
+        print('=====================')
         for row in observation:
             print("| ", end="")
             for val in row:
                 print(str(val.item()) + " | ", end="")
             print("")
             print("-" * (len(row) * 6))
+        print('=====================')
   
     # Easiest to Hardest: Vertical (10), Horizontal (20), Diagonal (30)
     def find_rewards(self, done: Tuple[bool, int], overflow: bool):
