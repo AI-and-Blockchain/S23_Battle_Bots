@@ -4,7 +4,7 @@ from algosdk import account, mnemonic
 from algosdk import transaction
 from algosdk import encoding
 import base64
-from bet import apporve
+from bet import approve
 from bet import clear
 
 
@@ -18,8 +18,8 @@ def create_app(
     local_schema: transaction.StateSchema,
 ) -> int:
     # define sender as creator
-    sender = account.address_from_private_key(private_key)
-
+    sender = ""
+    print(sender)
     # declare on_complete as NoOp
     on_complete = transaction.OnComplete.NoOpOC.real
 
@@ -79,9 +79,33 @@ def wait_for_confirmation(client, txid):
     )
     return txinfo
 
-def opt_in_app(client, private_key, index):
+def call_app(client, private_key, pub,index, app_args):
     # declare sender
-    sender = account.address_from_private_key(private_key)
+    sender = pub
+    print("Call from account:", sender)
+
+    # get node suggested parameters
+    params = client.suggested_params()
+    # comment out the next two (2) lines to use suggested fees
+    params.flat_fee = True
+    params.fee = 1000
+
+    # create unsigned transaction
+    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["",""])
+
+    # sign transaction
+    signed_txn = txn.sign(private_key)
+    tx_id = signed_txn.transaction.get_txid()
+
+    # send transaction
+    client.send_transactions([signed_txn])
+
+    # await confirmation
+    wait_for_confirmation(client, tx_id)
+
+def opt_in_app(client, private_key, pub, index):
+    # declare sender
+    sender = pub
     print("OptIn from account: ", sender)
 
     # get node suggested parameters
@@ -108,33 +132,14 @@ def opt_in_app(client, private_key, index):
     print("OptIn to app-id:", transaction_response["txn"]["txn"]["apid"])
     
 
+pr_a = mnemonic.to_master_derivation_key("")
+pr_b = mnemonic.to_master_derivation_key("")
+pu_a = ""
+pu_b = ""
 
-
-
-
-def call_app(client, private_key, index, app_args):
-    # declare sender
-    sender = account.address_from_private_key(private_key)
-    print("Call from account:", sender)
-
-    # get node suggested parameters
-    params = client.suggested_params()
-    # comment out the next two (2) lines to use suggested fees
-    params.flat_fee = True
-    params.fee = 1000
-
-    # create unsigned transaction
-    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=[pu_a,pu_b,pu_c])
-
-    # sign transaction
-    signed_txn = txn.sign(private_key)
-    tx_id = signed_txn.transaction.get_txid()
-
-    # send transaction
-    client.send_transactions([signed_txn])
-
-    # await confirmation
-    wait_for_confirmation(client, tx_id)
+algod_address = "http://localhost:4001"
+algod_token = "a" * 64
+my_client = algod.AlgodClient(algod_token, algod_address)
 
 approval_program = compileTeal(approve(),mode=Mode.Application,version=6)
 clear_program = compileTeal(clear(),mode=Mode.Application,version=6)
@@ -150,24 +155,13 @@ global_schema = transaction.StateSchema(global_ints, global_bytes)
 local_schema = transaction.StateSchema(local_ints, local_bytes)
 
 
-create_app(my_client,pr_a,approval_bytes,clear_bytes,
+apid = create_app(my_client,pr_b,approval_bytes,clear_bytes,
     global_schema,
     local_schema,
 )
 
-purestake_token = {'X-Api-key': ""}
-pr_a = ""
-pu_a = ""
-pr_b = ""
-pu_b = ""
-pr_c = ""
-pu_c = ""
-my_client = algod.AlgodClient("","https://testnet-algorand.api.purestake.io/ps2",headers=purestake_token)
-
-apid = 0
-
-opt_in_app(my_client, pr_a, apid)
-
+opt_in_app(my_client, pr_a,pu_a, apid)
+opt_in_app(my_client, pr_b,pu_b, apid)
 app_adress = ""
 
 params = my_client.suggested_params()
