@@ -104,8 +104,16 @@ class BattleBot:
         with open(self.bots_file_path, "r") as f:
             bots_data = json.load(f)
 
-        data = {'name': self.name, 'id': self.id, 'model_path': self.model_path}
-        bots_data.append(data)
+        bot_data = {
+            "id": self.id,
+            "name": self.name,
+            "win_count": self.win_count,
+            "total_games": self.total_games,
+            "epsilon": self.epsilon,
+            "reward": self.reward,
+            "model_path": self.model_path,
+        }
+        bots_data.append(bot_data)
 
         with open(self.bots_file_path, "w") as f:
             json.dump(bots_data, f)
@@ -162,11 +170,11 @@ class BattleBot:
 
 
 class Game:
-    def __init__(self, id, player_1, player_2, winner, actions):
+    def __init__(self, id, player_1, player_2, winner_name, actions):
         self.id = id
         self.player_1 = player_1
         self.player_2 = player_2
-        self.winner = winner
+        self.winner_name = winner_name
         self.actions = actions
         self.games_file_path = './games.json'
 
@@ -178,8 +186,12 @@ class Game:
         with open(self.games_file_path, "r") as f:
             games_data = json.load(f)
 
-        data = {'id': self.id, 'player_1': self.player_1, 'player_2': self.player_2, 'winner': self.winner, 'actions': self.actions}
-        games_data.append(data)
+        game_data = {
+            "id": self.id,
+            "winner_name": self.winner_name,
+            "actions": self.actions,
+        }
+        games_data.append(game_data)
 
         with open(self.games_file_path, "w") as f:
             json.dump(games_data, f)
@@ -195,9 +207,18 @@ def load_bot(id):
     with open('./bots.json', "r") as f:
         bots_data = json.load(f)
 
-    for bot in bots_data:
-        if bot['id'] == id:
+    for bot_data in bots_data:
+        if bot_data['id'] == id:
             print("Found bot with id", id)
+
+            # Recreate the bot object using the bot data
+            id, name, win_count, total_games, epsilon, reward, model_path = bot_data.values()
+            bot = BattleBot(name, id, model_path, torch.load(model_path))
+            bot.win_count = win_count
+            bot.total_games = total_games
+            bot.epsilon = epsilon
+            bot.reward = reward
+
             return bot
 
     print("Bot with id", id, "not found")
@@ -211,9 +232,14 @@ def load_game(id):
     with open('./games.json', "r") as f:
         games_data = json.load(f)
 
-    for game in games_data:
-        if game['id'] == id:
+    for game_data in games_data:
+        if game_data['id'] == id:
             print("Found game with id", id)
+
+            # Recreate the game object using the game data
+            id, winner_name, actions = game_data.values()
+            game = Game(id, None, None, winner_name, actions)
+            
             return game
 
     print("Game with id", id, "not found")

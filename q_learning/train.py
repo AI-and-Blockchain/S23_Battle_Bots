@@ -76,7 +76,7 @@ def play_battle_bots(board, env, memory, player_1_bot, player_2_bot):
 
         i += 1
 
-    return player_1_model, player_2_bot, actions, current_player.name
+    return player_1_bot, player_2_bot, actions, current_player.name
 
 
 if __name__ == '__main__':
