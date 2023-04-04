@@ -30,7 +30,7 @@ class MyMongoDB:
     print("Modified", modified_count, "documents in collection")
     '''
     def __init__(self, db_name, collection_name):
-        self.client = MongoClient()
+        self.client = MongoClient('mongodb://localhost:27017')
         self.db = self.client[db_name]
         self.collection = self.db[collection_name]
         
@@ -151,14 +151,14 @@ def save_player_model(player_model_id, player_model_name, player_model, db):
         os.makedirs('./models')
 
     model_file_path = f'./models/{player_model_name}.pt'
-    torch.save(player_model.state_dict(), model_file_path)
+    torch.save(player_model, model_file_path)
 
     # Load the saved model into memory as binary data
     with open(model_file_path, "rb") as f:
         model_data = f.read()
 
     # Insert the model data into MongoDB
-    data = {'model_id': player_model_id, 'model_name': player_model_name, 'model': pymongo.binary.Binary(model_data)}
+    data = {'model_id': player_model_id, 'model_name': player_model_name, 'model': model_data}
     inserted_id = db.insert_data(data)
     print("Inserted document with ID:", inserted_id)
 
