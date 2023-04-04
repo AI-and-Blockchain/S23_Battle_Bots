@@ -1,6 +1,5 @@
 import os
 import torch
-import io
 import json
 import torch.nn as nn
 import torch.optim as optim
@@ -23,61 +22,11 @@ class Memory:
         self.actions.append(new_action)
         self.rewards.append(float(new_reward))
 
-#https://gist.github.com/leeschmalz/fd5535477f276c5e9b965c6c1ea13cbd
-
-class Model:
-    def __init__(self, name = '') -> None:
-        self.model = self.create_model()
-        self.win_count = 0
-        self.epsilon = 1
-        self.reward = 0
-        self.name = name
-        self.optimizer = optim.Adam(self.model.parameters())
-
-    def create_model(self):
-        model = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(42, 50),
-            nn.ReLU(),
-            nn.Linear(50, 50),
-            nn.ReLU(),
-            nn.Linear(50, 50),
-            nn.ReLU(),
-            nn.Linear(50, 50),
-            nn.ReLU(),
-            nn.Linear(50, 50),
-            nn.ReLU(),
-            nn.Linear(50, 50),
-            nn.ReLU(),
-            nn.Linear(50, 7)
-        )
-        return model
-
-    def compute_loss(self, logits, actions, rewards):
-        log_probs = torch.nn.functional.log_softmax(logits, dim=1)
-        action_log_probs = log_probs.gather(1, actions.unsqueeze(1)).squeeze(1)
-        loss = -1 * (action_log_probs * rewards).mean()
-        return loss
-
-    def train_step(self, observations, actions, rewards):
-        self.optimizer.zero_grad()
-        logits = self.model(observations)
-        loss = self.compute_loss(logits, actions, rewards)
-        loss.backward()
-        self.optimizer.step()
-
-    def decay_epsilon(self):
-        self.epsilon = self.epsilon * 0.99985
-
-    def reset(self):
-        self.win_count = 0
-        self.reward = 0
-
 
 class BattleBot:
-    def __init__(self, name, id, model_path, model):
+    def __init__(self, name, bot_id, model_path, model):
         self.name = name
-        self.id = id
+        self.bot_id = bot_id
         self.model_path = model_path
         self.bots_file_path = './bots.json'
         self.epsilon = 1
@@ -105,7 +54,7 @@ class BattleBot:
             bots_data = json.load(f)
 
         bot_data = {
-            "id": self.id,
+            "bot_id": self.bot_id,
             "name": self.name,
             "win_count": self.win_count,
             "total_games": self.total_games,
@@ -113,12 +62,23 @@ class BattleBot:
             "reward": self.reward,
             "model_path": self.model_path,
         }
-        bots_data.append(bot_data)
+
+        prev_bot = load_bot(self.bot_id)
+        if prev_bot is None:
+            bots_data.append(bot_data)
+        else:
+            for bot_data in bots_data:
+                if bot_data['bot_id'] == self.bot_id:
+                    bot_data['win_count'] = self.win_count
+                    bot_data['total_games'] = self.total_games
+                    bot_data['epsilon'] = self.epsilon
+                    bot_data['reward'] = self.reward
+                    break
 
         with open(self.bots_file_path, "w") as f:
             json.dump(bots_data, f)
 
-        print("Inserted bot document with ID:", self.id)
+        print("Inserted bot document with ID:", self.bot_id)
 
         # Actually save the model
         torch.save(self.model, self.model_path)
@@ -168,13 +128,12 @@ class BattleBot:
         self.total_games += 1
         self.win_count += 1
 
-
 class Game:
-    def __init__(self, id, player_1, player_2, winner_name, actions):
-        self.id = id
-        self.player_1 = player_1
-        self.player_2 = player_2
-        self.winner_name = winner_name
+    def __init__(self, game_id, player_1_id, player_2_id, winner_id, actions):
+        self.game_id = game_id
+        self.player_1_id = player_1_id
+        self.player_2_id = player_2_id
+        self.winner_id = winner_id
         self.actions = actions
         self.games_file_path = './games.json'
 
@@ -187,19 +146,30 @@ class Game:
             games_data = json.load(f)
 
         game_data = {
-            "id": self.id,
-            "winner_name": self.winner_name,
+            "game_id": self.game_id,
+            "player_1_id": self.player_1_id,
+            "player_2_id": self.player_2_id,
+            "winner_id": self.winner_id,
             "actions": self.actions,
         }
-        games_data.append(game_data)
+
+        prev_game = load_game(self.game_id)
+        if prev_game is None: 
+            games_data.append(game_data)
+        else:
+            for game_data in games_data:
+                if game_data['game_id'] == self.game_id:
+                    game_data['winner_id'] = self.winner_id
+                    game_data['actions'] = self.actions
+                    break
 
         with open(self.games_file_path, "w") as f:
             json.dump(games_data, f)
 
-        print("Inserted game document with ID:", self.id)
+        print("Inserted game document with ID:", self.game_id)
 
 
-def load_bot(id):
+def load_bot(bot_id):
     if not os.path.exists('./bots.json'):
         with open('./bots.json', "w") as f:
             json.dump([], f)
@@ -208,12 +178,12 @@ def load_bot(id):
         bots_data = json.load(f)
 
     for bot_data in bots_data:
-        if bot_data['id'] == id:
-            print("Found bot with id", id)
+        if bot_data['bot_id'] == bot_id:
+            print("Found bot with bot_id", bot_id)
 
             # Recreate the bot object using the bot data
-            id, name, win_count, total_games, epsilon, reward, model_path = bot_data.values()
-            bot = BattleBot(name, id, model_path, torch.load(model_path))
+            bot_id, name, win_count, total_games, epsilon, reward, model_path = bot_data.values()
+            bot = BattleBot(name, bot_id, model_path, torch.load(model_path))
             bot.win_count = win_count
             bot.total_games = total_games
             bot.epsilon = epsilon
@@ -221,10 +191,10 @@ def load_bot(id):
 
             return bot
 
-    print("Bot with id", id, "not found")
+    print("Bot with bot_id", bot_id, "not found")
     return None
 
-def load_game(id):
+def load_game(game_id):
     if not os.path.exists('./games.json'):
         with open('./games.json', "w") as f:
             json.dump([], f)
@@ -233,29 +203,14 @@ def load_game(id):
         games_data = json.load(f)
 
     for game_data in games_data:
-        if game_data['id'] == id:
-            print("Found game with id", id)
+        if game_data['game_id'] == game_id:
+            print("Found game with game_id", game_id)
 
             # Recreate the game object using the game data
-            id, winner_name, actions = game_data.values()
-            game = Game(id, None, None, winner_name, actions)
-            
+            game_id, player_1_id, player_2_id, winner_id, actions = game_data.values()
+            game = Game(game_id, player_1_id, player_2_id, winner_id, actions)
+
             return game
 
-    print("Game with id", id, "not found")
+    print("Game with game_id", game_id, "not found")
     return None
-
-'''TODO:
-1. a function that returns the winner of the game given two model ids
-2. a function that given an id creates a new model and stores it with that id
-3. a function that given a model id deletes the model
-'''
-
-def get_winner(model_id_1, model_id_2):
-    pass
-
-def create_new_model(model_id):
-    pass
-
-def delete_model(model_id):
-    pass

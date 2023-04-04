@@ -71,7 +71,7 @@ class Connect4:
         return 20
     elif 'Diagonal' in win_type:
         return 30
-      
+
     return 0
 
   def check_if_action_valid(self, obs, action):
