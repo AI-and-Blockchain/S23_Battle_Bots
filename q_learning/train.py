@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from kaggle_environments import make
-from model import load_player_model, save_player_model, save_actions, Memory
+from model import BattleBot, Game, load_bot, load_game, Memory
 from connect4 import Connect4
 
 LEARNING_RATE = 0.001
@@ -77,30 +77,36 @@ def play_battle_bots(board, env, memory, player_1_model, player_2_model):
 
     return player_1_model, player_2_model, actions, current_player
 
+
 if __name__ == '__main__':
     env = make("connectx", debug=True)
     memory = Memory()
 
-    # Load the models for both players
-    player_1_model_id = 'A'
-    player_1_model_name = 'Player 1'
-    player_1_model = load_player_model(player_1_model_id, player_1_model_name)
+    # Load the bots for both players
+    player_1_bot_id = 'A'
+    player_1_bot_name = 'BattleBotA'
+    player_1_bot = load_bot(player_1_bot_id)
+    if player_1_bot is None:
+        player_1_bot = BattleBot(player_1_bot_id, player_1_bot_name, '', None)
 
-
-    player_2_model_id = 'B'
-    player_2_model_name = 'Player 2'
-    player_2_model = load_player_model(player_2_model_id, player_2_model_name)
+    player_2_bot_id = 'B'
+    player_2_bot_name = 'BattleBotB'
+    player_2_bot = load_bot(player_2_bot_id)
+    if player_2_bot is None:
+        player_2_bot = BattleBot(player_2_bot_id, player_2_bot_name, '', None)
 
     # Create the Connect 4 board
     board = Connect4()
 
     # Have the two battle bots from the players compete against each other
-    new_player_1_model, new_player_2_model, actions = play_battle_bots(board, env, memory, player_1_model, player_2_model)
+    new_player_1_model, new_player_2_model, actions, winner = play_battle_bots(board, env, memory, player_1_bot, player_2_bot)
 
     # Update the player models associated with each player
-    save_player_model(player_1_model_id, player_1_model_name, new_player_1_model)
-    save_player_model(player_2_model_id, player_2_model_name, new_player_2_model)
+    player_1_bot.update_model(new_player_1_model)
+    player_2_bot.update_model(new_player_2_model)
 
-    # Save the actions for the game associated with each player
-    save_actions(player_1_model_id, actions)
-    save_actions(player_2_model_id, actions)
+    # Save the game to the database
+    game_id = '1'
+    game = Game(game_id, player_1_bot, player_2_bot, winner.name, actions)
+    game.save_game()
+
