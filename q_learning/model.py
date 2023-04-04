@@ -79,8 +79,18 @@ class BattleBot:
         self.name = name
         self.id = id
         self.model_path = model_path
-        self.model = model
         self.bots_file_path = './bots.json'
+        self.epsilon = 1
+        self.reward = 0
+        self.name = name
+        self.win_count = 0
+        self.total_games = 0
+
+        if model is None:
+            self.model = self.create_model()
+        else:
+            self.model = model
+        self.optimizer = optim.Adam(self.model.parameters())
 
         if not os.path.exists(self.bots_file_path):
             with open(self.bots_file_path, "w") as f:
@@ -105,9 +115,50 @@ class BattleBot:
         # Actually save the model
         torch.save(self.model, self.model_path)
 
-    def update_model(self, model):
-        self.model = model
-        self.save_bot()
+
+    def create_model(self):
+        model = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(42, 50),
+            nn.ReLU(),
+            nn.Linear(50, 50),
+            nn.ReLU(),
+            nn.Linear(50, 50),
+            nn.ReLU(),
+            nn.Linear(50, 50),
+            nn.ReLU(),
+            nn.Linear(50, 50),
+            nn.ReLU(),
+            nn.Linear(50, 50),
+            nn.ReLU(),
+            nn.Linear(50, 7)
+        )
+
+        return model
+    
+    def compute_loss(self, logits, actions, rewards):
+        log_probs = torch.nn.functional.log_softmax(logits, dim=1)
+        action_log_probs = log_probs.gather(1, actions.unsqueeze(1)).squeeze(1)
+        loss = -1 * (action_log_probs * rewards).mean()
+        return loss
+
+    def train_step(self, observations, actions, rewards):
+        self.optimizer.zero_grad()
+        logits = self.model(observations)
+        loss = self.compute_loss(logits, actions, rewards)
+        loss.backward()
+        self.optimizer.step()
+
+    def decay_epsilon(self):
+        self.epsilon = self.epsilon * 0.99985
+
+    def reset(self):
+        self.win_count = 0
+        self.reward = 0
+
+    def update_stats(self):
+        self.total_games += 1
+        self.win_count += 1
 
 
 class Game:
