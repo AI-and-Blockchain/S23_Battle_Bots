@@ -16,7 +16,6 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
     # Reset the models for both players and decay the epsilon value
     players = (player_1_bot, player_2_bot)
     for player in players:
-        player.reward = 0
         player.decay_epsilon()
 
     current_player = None
@@ -68,7 +67,7 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
         if invalid_board:
             return player_1_bot, player_2_bot, actions, 'NotValidWinnerID'
         else:
-            current_player.reward += reward
+            current_player.total_reward += reward
 
         # Add the current state of the board to the memory
         memory.add_to_memory(observation, action, reward)
@@ -125,19 +124,25 @@ if __name__ == '__main__':
     # Have the two battle bots from the players compete against each other
     player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, memory, player_1_bot, player_2_bot)
 
-    # Print the winner of the Connect 4 Game
+    # Save the game to the database
     if winner_id == player_1_bot.bot_id:
         winner_name = player_1_bot.name
         player_1_bot.win_count += 1
     elif winner_id == player_2_bot.bot_id:
         winner_name = player_2_bot.name
         player_2_bot.win_count += 1
-
-    if winner_id == 'NotValidWinnerID':
+    elif winner_id == 'NotValidWinnerID':
         winner_name = 'No Winner Found'
 
+    game_id = str(uuid.uuid4())
+    game = Game(game_id, player_1_bot.bot_id, player_2_bot.bot_id, winner_name, actions)
+    game.save_game()
+
+    # Print the winner of the Connect 4 Game
     player_1_bot.total_games += 1
     player_2_bot.total_games += 1
+    player_1_bot.games.append(game_id)
+    player_2_bot.games.append(game_id)
 
     # Update the player models & battle bots associated with each player
     player_1_bot.save_bot()
@@ -145,8 +150,4 @@ if __name__ == '__main__':
 
     print(f'Winner: {winner_name}!!!')
 
-    # Save the game to the database
-    game_id = str(uuid.uuid4())
-    game = Game(game_id, player_1_bot.bot_id, player_2_bot.bot_id, winner_name, actions)
-    game.save_game()
 
