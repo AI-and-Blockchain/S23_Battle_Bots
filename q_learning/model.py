@@ -33,10 +33,12 @@ class BattleBot:
         self.model_path = model_path
         self.bots_file_path = './bots.json'
         self.epsilon = 1
-        self.reward = 0
+        self.total_reward = 0
         self.name = name
         self.win_count = 0
         self.total_games = 0
+        self.games = []
+        self.avg_reward = 0
 
         # Create the model for the battle bot if one was not passed in
         if model is None:
@@ -61,14 +63,19 @@ class BattleBot:
         with open(self.bots_file_path, "r") as f:
             bots_data = json.load(f)
 
+        if self.total_games > 0:
+            self.avg_reward = self.total_reward / self.total_games
+
         bot_data = {
             "bot_id": self.bot_id,
             "name": self.name,
             "win_count": self.win_count,
             "total_games": self.total_games,
             "epsilon": self.epsilon,
-            "reward": self.reward,
+            "total_reward": self.total_reward,
+            "avg_reward": self.avg_reward,
             "model_path": self.model_path,
+            "games": self.games
         }
 
         # Check if the bot already exists in the bots data file
@@ -83,7 +90,9 @@ class BattleBot:
                     bot_data['win_count'] = self.win_count
                     bot_data['total_games'] = self.total_games
                     bot_data['epsilon'] = self.epsilon
-                    bot_data['reward'] = self.reward
+                    bot_data['total_reward'] = self.total_reward
+                    bot_data['avg_reward'] = self.avg_reward
+                    bot_data['games'] = self.games
                     break
 
         # Save the bots data file with the updated bots list
@@ -252,12 +261,14 @@ def load_bot(bot_id):
             print("Found bot with bot_id", bot_id)
 
             # Recreate the bot object using the bot data
-            bot_id, name, win_count, total_games, epsilon, reward, model_path = bot_data.values()
+            bot_id, name, win_count, total_games, epsilon, total_reward, avg_reward, model_path, games = bot_data.values()
             bot = BattleBot(name, bot_id, model_path, torch.load(model_path))
             bot.win_count = win_count
             bot.total_games = total_games
             bot.epsilon = epsilon
-            bot.reward = reward
+            bot.total_reward = total_reward
+            bot.avg_reward = avg_reward
+            bot.games = games
 
             return bot
 
