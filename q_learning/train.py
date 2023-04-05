@@ -28,7 +28,6 @@ class Trainer:
         return True
 
     def step(self, action, player):
-        print('HELLOOO', action, player)
         assert(player == 1 or player == 2)
         assert(action >= 0 and action < self.num_cols)
 
@@ -36,8 +35,7 @@ class Trainer:
         if self.column_overflow(action):
             return False
 
-        # Find the first empty row in the column
-        for i in range(self.num_rows):
+        for i in range(self.num_rows - 1, -1, -1):
             if self.board[i][action] == 0:
                 self.board[i][action] = player
                 return True
@@ -45,7 +43,7 @@ class Trainer:
         return False
 
 
-def play_battle_bots(board, memory, player_1_bot, player_2_bot):
+def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
     print('Playing Battle Bots...')
 
     # Reset the environment and get the initial state of the board
@@ -89,8 +87,6 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
         try:
             column_overflow = trainer.step(action, current_player_token)
             next_observation = trainer.board
-            print('next_observation', next_observation)
-
         except Exception as e:
             print('Error in trainer.step: ', e)
             trainer.reset()
@@ -98,9 +94,8 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
             memory.clear()
 
         observation = next_observation
-        print('observation', observation)
-        # observation = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
-        board.print_board(observation)
+        if debug:
+            board.print_board(observation)
 
         # Check if a player won
         done = board.check_if_done(observation)
@@ -117,34 +112,19 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot):
         else:
             current_player.reward += reward
 
-        def flatten(lst):
-            """
-            Flatten a nested list.
-            """
-            result = []
-            for item in lst:
-                if isinstance(item, list):
-                    result.extend(flatten(item))
-                else:
-                    result.append(item)
-            return result
-
-        memory.add_to_memory(flatten(observation), action, reward)
+        memory.add_to_memory(observation, action, reward)
 
         # Update the model of both battle bots after the game is over
         if winner_found:
             print("Winner Found, Updating models...")
-            arr = np.array(memory.observations)
-            tensor = torch.tensor(arr)
 
-            print('AAAA', tensor)
             player_1_bot.train_step(
-                    observations=tensor,
+                    observations=torch.tensor(memory.observations),
                     actions=torch.tensor(memory.actions),
                     rewards = torch.tensor(memory.rewards))
 
             player_2_bot.train_step(
-                    observations=tensor,
+                    observations=torch.tensor(memory.observations),
                     actions=torch.tensor(memory.actions),
                     rewards = torch.tensor(memory.rewards))
 
