@@ -1,17 +1,13 @@
 from algosdk import account, encoding, mnemonic
-from algosdk.future.transaction import Transaction
+from algosdk.transaction import Transaction
 from algosdk.v2client import algod
-from algosdk.v2client.models import DryrunSource, DryrunRequest, DryrunResponse
 from algosdk.wallet import Wallet
 from pyteal import *
 from q_learning.train import play_battle_bots
-from model import MyMongoDB
-import time
-import os
-
-# reference
-# https://github.com/AI-and-Blockchain/S23_PredictChain/blob/main/oracle/oracleCore.py
-# for oracle outline/ syntax
+from q_learning.model import MyMongoDB
+from algosdk.v2client import indexer
+import algosdk
+import time, os
 
 """
 1) Set up an Algorand node: To interact with the Algorand blockchain, 
@@ -54,11 +50,13 @@ up to listen for events and trigger actions based on the logic you have defined.
 
 # Connect to Algorand node
 algod_address = "https://testnet-algorand.api.purestake.io/ps2"
-algod_token = {"X-API-Key": "<YOUR API KEY>"}
-algod_client = algod.AlgodClient(algod_token, algod_address)
+algod_token = "<insert token here>"
+headers = {"X-API-KEY": algod_token}
+my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 # Define smart contract information
-program = b"<SMART CONTRACT ADDRESS HERE>"
+apid = "<insert token int here>"
+app_address = "<insert address here>"
 
 
 # [run game]
@@ -85,12 +83,7 @@ def getModel(playerID):
 # website with moves, and call smart contract with winner (with word 'resolve'
 # as first arguement), winner id must be base32 encoded.
 # Connect to Algorand node
-algod_address = "https://testnet-algorand.api.purestake.io/ps2"
-algod_token = {"X-API-Key": "<YOUR API KEY>"}
-algod_client = algod.AlgodClient(algod_token, algod_address)
 
-# Define smart contract information
-program = b"<SMART CONTRACT ADDRESS HERE>"
 def updateDatabase(player1ID, player1Model, player2ID, player2Model):
     # send models to MongoDB database
     print("Not Implemented")
@@ -115,7 +108,7 @@ def callContract(winner):
     txn = Transaction(
         sender=algod_address,
         sp=params,
-        app_id=program,
+        app_id=apid,
         on_complete=OnComplete.NoOpOC.real,
         note=bytes("Winner of the bet".encode()),
         app_args=arguments,
@@ -135,6 +128,7 @@ def callContract(winner):
 # ready variable is set to 'true' then pull model id and opponent model id
 
 # Define oracle logic
+"""
 def process_event(event):
     if event['type'] == 'application' and event['application-index'] == program:
     
@@ -149,17 +143,36 @@ def process_event(event):
         # Print the bot and opponent values to the console
         print(f"Bot: {bot}")
         print(f"Opponent: {opponent}")
+"""
 
 
 # Wait for events
 def wait_for_events():
-    # Subscribe to events
-    event_listener = algod_client.events()
-    event_listener.state(delta=1, application_id=program).subscribe(process_event)
-
-    # Keep the script running
+    # Initialize the indexer client
+    testnet_address = "https://testnet-algorand.api.purestake.io/idx2"
+    idx_client = indexer.IndexerClient(algod_token, testnet_address, headers)
+    last_txn_id = 0
+    # Loop indefinitely
     while True:
-        time.sleep(1)
+        print("Searching for Transactions...")
+        # Get the transactions of the smart contract with a higher ID than the last processed ID
+        txns = idx_client.search_transactions(
+            application_id=apid,
+            address = app_address,
+            #min_round=last_txn_id + 1
+        )
+
+        # Iterate over the new transactions and extract the user IDs
+        print(txns)
+        for txn in txns["transactions"]:
+            # Update the last processed ID
+            last_txn_id = max(last_txn_id, txn["id"])
+            sender = encoding.encode_address(txn["sender"])
+            opponent = txn["application-args"][3].decode()
+            print(f"New bet detected: Sender: {sender}, Opponent: {opponent}")
+
+        # Wait for a few seconds before checking for new transactions again
+        time.sleep(5)   
 
 # Main function
 def main():
