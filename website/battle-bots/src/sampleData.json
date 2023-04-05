@@ -1,0 +1,10 @@
+{
+    "games": {
+        "testGame":{
+            "info": null,
+            "turns": [
+                3, 4, 3, 4, 3, 4, 3
+            ]
+        }
+    }
+}
