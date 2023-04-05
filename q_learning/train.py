@@ -1,47 +1,9 @@
 import torch
-from model import BattleBot, Game, load_bot, Memory
+from model import BattleBot, Game, load_bot, Memory, Trainer
 from connect4 import Connect4
 import uuid
 
 LEARNING_RATE = 0.001
-
-class Trainer:
-    def __init__(self):
-        self.num_rows = 6
-        self.num_cols = 7
-        self.board = []
-        for _ in range(self.num_rows):
-            self.board.append([0] * self.num_cols)
-
-    def reset(self):
-        for i in range(self.num_rows):
-            for j in range(self.num_cols):
-                self.board[i][j] = 0
-
-    def column_overflow(self, action):
-        assert(action >= 0 and action < self.num_cols)
-        # If any of the top row is non-zero, then the board has overflowed
-        for i in range(self.num_rows):
-            if self.board[i][action] == 0:
-                return False
-
-        return True
-
-    def step(self, action, player):
-        assert(player == 1 or player == 2)
-        assert(action >= 0 and action < self.num_cols)
-
-        # If the column is full, then the action is invalid
-        if self.column_overflow(action):
-            return False
-
-        for i in range(self.num_rows - 1, -1, -1):
-            if self.board[i][action] == 0:
-                self.board[i][action] = player
-                return True
-
-        return False
-
 
 def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
     print('Playing Battle Bots...')
@@ -54,7 +16,6 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
     # Reset the models for both players and decay the epsilon value
     players = (player_1_bot, player_2_bot)
     for player in players:
-        print(player)
         player.reward = 0
         player.decay_epsilon()
 
@@ -75,12 +36,9 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
 
         # Find the next action for the player to take
         action, _ = board.get_action(current_player, observation, current_player.epsilon)
-        if i % 2 == 0:
-            print('Player 1 Action: ', action)
-        else:
-            print('Player 2 Action: ', action)
+
         # Add the action to the list of actions taken along with the player's name
-        actions.append((current_player.name, action))
+        actions.append((current_player.bot_id, action))
 
         # Take the step on the current state of the board
         # and observe the new board state
@@ -112,21 +70,23 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
         else:
             current_player.reward += reward
 
+        # Add the current state of the board to the memory
         memory.add_to_memory(observation, action, reward)
 
         # Update the model of both battle bots after the game is over
         if winner_found:
             print("Winner Found, Updating models...")
 
+            # Update the model of both battle bots after the game is over
             player_1_bot.train_step(
                     observations=torch.tensor(memory.observations),
                     actions=torch.tensor(memory.actions),
-                    rewards = torch.tensor(memory.rewards))
+                    rewards=torch.tensor(memory.rewards))
 
             player_2_bot.train_step(
                     observations=torch.tensor(memory.observations),
                     actions=torch.tensor(memory.actions),
-                    rewards = torch.tensor(memory.rewards))
+                    rewards=torch.tensor(memory.rewards))
 
             break
 
@@ -142,6 +102,8 @@ if __name__ == '__main__':
     player_1_bot_id = 'A'
     player_1_bot_name = 'BattleBotA'
     player_1_bot = load_bot(player_1_bot_id)
+
+    # If the bot does not exist, create a new one
     if player_1_bot is None:
         print('Creating new bot for player 1...')
         player_1_bot = BattleBot(player_1_bot_name, player_1_bot_id, f'./models/{player_1_bot_name}.pt', None)
@@ -150,6 +112,8 @@ if __name__ == '__main__':
     player_2_bot_id = 'B'
     player_2_bot_name = 'BattleBotB'
     player_2_bot = load_bot(player_2_bot_id)
+
+    # If the bot does not exist, create a new one
     if player_2_bot is None:
         print('Creating new bot for player 2...')
         player_2_bot = BattleBot(player_2_bot_name, player_2_bot_id, f'./models/{player_2_bot_name}.pt', None)
@@ -161,6 +125,7 @@ if __name__ == '__main__':
     # Have the two battle bots from the players compete against each other
     player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, memory, player_1_bot, player_2_bot)
 
+    # Print the winner of the Connect 4 Game
     if winner_id == player_1_bot.bot_id:
         winner_name = player_1_bot.name
         player_1_bot.win_count += 1
@@ -174,7 +139,7 @@ if __name__ == '__main__':
     player_1_bot.total_games += 1
     player_2_bot.total_games += 1
 
-    # Update the player models associated with each player
+    # Update the player models & battle bots associated with each player
     player_1_bot.save_bot()
     player_2_bot.save_bot()
 
