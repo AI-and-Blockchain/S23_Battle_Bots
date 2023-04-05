@@ -1,7 +1,7 @@
 import torch
-import numpy as np
 from model import BattleBot, Game, load_bot, Memory
 from connect4 import Connect4
+import uuid
 
 LEARNING_RATE = 0.001
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     print(f'Winner: {winner_name}!!!')
 
     # Save the game to the database
-    game_id = '1'
+    game_id = str(uuid.uuid4())
     game = Game(game_id, player_1_bot.bot_id, player_2_bot.bot_id, winner_name, actions)
     game.save_game()
 
