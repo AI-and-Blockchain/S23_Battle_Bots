@@ -86,7 +86,6 @@ class BattleBot:
 
     def create_model(self):
         model = nn.Sequential(
-            nn.Flatten(),
             nn.Linear(42, 50),
             nn.ReLU(),
             nn.Linear(50, 50),
@@ -112,6 +111,7 @@ class BattleBot:
 
     def train_step(self, observations, actions, rewards):
         self.optimizer.zero_grad()
+        observations = observations.view(-1, 42).to(torch.float32)
         logits = self.model(observations)
         loss = self.compute_loss(logits, actions, rewards)
         loss.backward()
