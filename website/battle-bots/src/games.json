@@ -1,0 +1,20 @@
+[
+    {
+        "game_id": "373c8edb-0cc6-41b7-b595-e86c99040975",
+        "player_1_id": "A",
+        "player_2_id": "B",
+        "winner_id": "BattleBotB",
+        "actions": [
+            3, 4, 3, 4, 3, 4, 3
+        ]
+    },
+    {
+        "game_id": "a101c2a6-323f-4b07-be54-0301aa0a857c",
+        "player_1_id": "A",
+        "player_2_id": "B",
+        "winner_id": "BattleBotA",
+        "actions": [
+            3, 4, 3, 4, 3, 4, 3
+        ]
+    }
+]
