@@ -1,5 +1,1 @@
 torch
-kaggle_environments
-vec_noise
-pettingzoo
-gym
