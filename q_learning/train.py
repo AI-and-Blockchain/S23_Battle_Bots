@@ -37,7 +37,7 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
         action, _ = board.get_action(current_player, observation, current_player.epsilon)
 
         # Add the action to the list of actions taken along with the player's name
-        actions.append((current_player.bot_id, action))
+        actions.append(action)
 
         # Take the step on the current state of the board
         # and observe the new board state
