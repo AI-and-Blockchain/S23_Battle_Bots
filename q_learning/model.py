@@ -31,7 +31,7 @@ class BattleBot:
         self.name = name
         self.bot_id = bot_id
         self.model_path = model_path
-        self.bots_file_path = './bots.json'
+        self.bots_file_path = './q_learning/bots.json'
         self.epsilon = 1
         self.total_reward = 0
         self.name = name
@@ -55,8 +55,8 @@ class BattleBot:
                 json.dump([], f)
 
         # Initialize the models directory if it does not exist
-        if not os.path.exists('./models'):
-            os.makedirs('./models')
+        if not os.path.exists('./q_learning/models'):
+            os.makedirs('./q_learning/models')
 
     def save_bot(self):
         '''Saves the battle bot to the bots data file'''
@@ -155,7 +155,7 @@ class Game:
         self.player_2_id = player_2_id
         self.winner_id = winner_id
         self.actions = actions
-        self.games_file_path = './games.json'
+        self.games_file_path = './q_learning/games.json'
 
         # Initialize the games data file if it does not exist
         if not os.path.exists(self.games_file_path):
@@ -247,12 +247,12 @@ class Trainer:
 def load_bot(bot_id):
     '''Loads a bot from the bots data file using the bot ID.'''
     # Initialize the bots data file if it does not exist
-    if not os.path.exists('./bots.json'):
-        with open('./bots.json', "w") as f:
+    if not os.path.exists('./q_learning/bots.json'):
+        with open('./q_learning/bots.json', "w") as f:
             json.dump([], f)
 
     # Load the bots data file
-    with open('./bots.json', "r") as f:
+    with open('./q_learning/bots.json', "r") as f:
         bots_data = json.load(f)
 
     # Find the bot with the given bot ID
@@ -277,12 +277,12 @@ def load_bot(bot_id):
 
 def load_game(game_id):
     '''Loads a game from the games data file using the game ID.'''
-    if not os.path.exists('./games.json'):
-        with open('./games.json', "w") as f:
+    if not os.path.exists('./q_learning/games.json'):
+        with open('./q_learning/games.json', "w") as f:
             json.dump([], f)
 
     # Load the games data file
-    with open('./games.json', "r") as f:
+    with open('./q_learning/games.json', "r") as f:
         games_data = json.load(f)
 
     # Find the game with the given game ID
