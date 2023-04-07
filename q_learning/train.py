@@ -1,6 +1,6 @@
 import torch
-from model import BattleBot, Game, load_bot, Memory, Trainer
-from connect4 import Connect4
+from q_learning.model import BattleBot, Game, load_bot, Memory, Trainer
+from q_learning.connect4 import Connect4
 import uuid
 
 LEARNING_RATE = 0.001
@@ -93,7 +93,7 @@ def play_battle_bots(board, memory, player_1_bot, player_2_bot, debug = True):
 
     return player_1_bot, player_2_bot, actions, current_player.bot_id
 
-
+"""
 if __name__ == '__main__':
     memory = Memory()
 
@@ -149,5 +149,4 @@ if __name__ == '__main__':
     player_2_bot.save_bot()
 
     print(f'Winner: {winner_name}!!!')
-
-
+"""

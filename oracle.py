@@ -1,83 +1,89 @@
 from algosdk import account, encoding, mnemonic
 from algosdk.transaction import Transaction
+from q_learning.model import BattleBot, Game, load_bot, Memory, Trainer
+from q_learning.connect4 import Connect4
 from algosdk.v2client import algod
 from algosdk.wallet import Wallet
 from pyteal import *
 from q_learning.train import play_battle_bots
-from q_learning.model import MyMongoDB
 from algosdk.v2client import indexer
 import algosdk
-import time, os, base64
-
-"""
-1) Set up an Algorand node: To interact with the Algorand blockchain, 
-you will need to run an Algorand node. You can set up a node on your 
-local machine or use a cloud provider such as AWS, Azure, or Google Cloud.
-
-2) Connect to the Algorand node: Once you have set up an Algorand node, 
-you can connect to it using the Algorand SDK in Python. You will need to 
-specify the address and port of the node, as well as your Algorand account 
-credentials.
-
-3) Deploy your smart contract: You will need to deploy your smart contract 
-on the Algorand blockchain using a tool such as PyTeal, which allows you to 
-write and compile Algorand smart contracts in Python.
-
-4) Define your oracle: Your oracle will need to be written in Python and 
-hosted on a server or cloud provider. It should listen for events related to 
-your smart contract on the Algorand blockchain and perform actions based on 
-those events.
-
-5) Set up a data source: Your oracle will need a data source that it can use 
-to determine whether certain conditions have been met on the blockchain. This 
-could be a web API, a database, or another external source of data.
-
-6) Define your oracle logic: Your oracle logic should specify what actions your 
-oracle should take based on the data it receives from the data source. For 
-example, if a certain condition is met on the blockchain, your oracle might 
-update a database, trigger a webhook, or send a notification to a user.
-
-7) Register your oracle: Once you have defined your oracle and its logic, you 
-will need to register it with the Algorand blockchain using a smart contract. 
-This will allow your oracle to receive notifications when events related to your 
-smart contract occur on the blockchain.
-
-8) Run your oracle: Finally, you can run your oracle and monitor the Algorand 
-blockchain for changes related to your smart contract. Your oracle should be set 
-up to listen for events and trigger actions based on the logic you have defined.
-
-"""
+import time, os, base64, uuid
 
 # Connect to Algorand node
 algod_address = "https://testnet-algorand.api.purestake.io/ps2"
-algod_token = ""
+algod_token = "" # PUT TOKEN HERE
 headers = {"X-API-KEY": algod_token}
 my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 # Define smart contract information
-apid = 0
-app_address = ""
+apid = 0 # PUT APP ID HERE
+app_address = "" # PUT APP ADDRESS HERE
 
 
 # [run game]
 # pull model from MongloDB database in model.py and call play_battle_bots in train.py
 
-def runGame(player1ID, player2ID):
-    # get player models
-    player1 = getModel(player1ID)
-    player2 = getModel(player2ID)
-    # play game
-    player1, player2, actions, winner = play_battle_bots(player1, player2)
-    updateDatabase(player1ID, player1, player2ID, player2)
-    updateWebsite(actions, winner)
-    callContract(player1ID)
+def runGame(player1ID, player2ID, botID1, botID2):
+
+    memory = Memory()
+    # Load the bots for both players
+    player_1_bot_id = botID1
+    player_1_bot_name = 'BattleBotA'
+    player_1_bot = load_bot(player_1_bot_id)
+
+    # If the bot does not exist, create a new one
+    if player_1_bot is None:
+        print('Creating new bot for player 1...')
+        player_1_bot = BattleBot(player_1_bot_name, player_1_bot_id, f'./q_learning/models/{player_1_bot_id}.pt', None)
+        player_1_bot.save_bot()
+
+    player_2_bot_id = botID2
+    player_2_bot_name = 'BattleBotB'
+    player_2_bot = load_bot(player_2_bot_id)
+
+    # If the bot does not exist, create a new one
+    if player_2_bot is None:
+        print('Creating new bot for player 2...')
+        player_2_bot = BattleBot(player_2_bot_name, player_2_bot_id, f'./q_learning/models/{player_2_bot_id}.pt', None)
+        player_2_bot.save_bot()
+
+    # Create the Connect 4 board
+    board = Connect4()
+
+    # Have the two battle bots from the players compete against each other
+    player_1_bot, player_2_bot, actions, winner_id = play_battle_bots(board, memory, player_1_bot, player_2_bot)
+
+    # Save the game to the database
+    if winner_id == player_1_bot.bot_id:
+        winner_name = player_1_bot.name
+        player_1_bot.win_count += 1
+    elif winner_id == player_2_bot.bot_id:
+        winner_name = player_2_bot.name
+        player_2_bot.win_count += 1
+    elif winner_id == 'NotValidWinnerID':
+        winner_name = 'No Winner Found'
+
+    game_id = str(uuid.uuid4())
+    game = Game(game_id, player_1_bot.bot_id, player_2_bot.bot_id, winner_name, actions)
+    game.save_game()
+
+    # Print the winner of the Connect 4 Game
+    player_1_bot.total_games += 1
+    player_2_bot.total_games += 1
+    player_1_bot.games.append(game_id)
+    player_2_bot.games.append(game_id)
+
+    # Update the player models & battle bots associated with each player
+    player_1_bot.save_bot()
+    player_2_bot.save_bot()
+
+    print(f'Winner: {winner_name}!!!')
+
+    updateWebsite(player_1_bot_id, player_2_bot_id, actions, winner_id)
+    callContract(winner_id)
+
     pass
-
-
-def getModel(playerID):
-    # pull model from MongoDB database
-    print("Not Implemented")
-
 
 # [update and send info]
 # with the return from play_battle_bots update models in database, update 
@@ -85,15 +91,12 @@ def getModel(playerID):
 # as first arguement), winner id must be base32 encoded.
 # Connect to Algorand node
 
-def updateDatabase(player1ID, player1Model, player2ID, player2Model):
-    # send models to MongoDB database
-    print("Not Implemented")
-
-def updateWebsite(actions, winner):
+def updateWebsite(player1ID, player2ID, actions, winner):
     # send moves and winner to website
     print("Not Implemented")
 
 def callContract(winner):
+    """
     # send winner to smart contract
 
     # Define the parameters for the transaction
@@ -114,7 +117,6 @@ def callContract(winner):
         note=bytes("Winner of the bet".encode()),
         app_args=arguments,
     )
-
     # Sign the transaction
     signed_txn = txn.sign(algod_token)
 
@@ -122,6 +124,8 @@ def callContract(winner):
     tx_id = algod_client.send_transaction(signed_txn)
     print(f"Transaction ID: {tx_id}")
 
+    """
+    print("Not Implemented")
 
 
 # [recieve game information]
@@ -166,15 +170,18 @@ def wait_for_events():
         # Iterate over the new transactions and extract the user ID
         
         opponents = {}
+        botid = {}
         for txn in txns["transactions"]:
-            print("transaction\n", txn, "\n")
+            #print("transaction\n", txn, "\n")
+            local_state = idx_client.lookup_account_application_local_state(txn['sender'], include_all = True)
+            for pair in local_state['apps-local-states'][0]['key-value']:
+                if base64.b64decode(pair['key']).decode('utf-8') == 'bot':  
+                    botid[txn['sender']] = str(int.from_bytes(base64.b64decode(pair['value']['bytes']), 'big'))
             if txn['sender'] in opponents:
-                runGame(txn['sender'], opponents[txn['sender']])
+                print(botid)
+                runGame(txn['sender'], opponents[txn['sender']], botid[txn['sender']], botid[opponents[txn['sender']]])
             else:
-                local_state = idx_client.lookup_account_application_local_state(txn['sender'], include_all = True)
                 for pair in local_state['apps-local-states'][0]['key-value']:
-                #   if base64.b64decode(pair['key']).decode('utf-8') == 'bet ready':
-                #       print(base64.b64decode(pair['value']['bytes']).decode('utf-8'))
                     if base64.b64decode(pair['key']).decode('utf-8') == 'opponent':
                         opponents[algosdk.encoding.encode_address(base64.b64decode(pair['value']['bytes']))] = txn['sender']
 
