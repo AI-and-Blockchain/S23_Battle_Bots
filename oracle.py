@@ -7,7 +7,7 @@ from q_learning.train import play_battle_bots
 from q_learning.model import MyMongoDB
 from algosdk.v2client import indexer
 import algosdk
-import time, os
+import time, os, base64
 
 """
 1) Set up an Algorand node: To interact with the Algorand blockchain, 
@@ -50,13 +50,13 @@ up to listen for events and trigger actions based on the logic you have defined.
 
 # Connect to Algorand node
 algod_address = "https://testnet-algorand.api.purestake.io/ps2"
-algod_token = "<insert token here>"
+algod_token = ""
 headers = {"X-API-KEY": algod_token}
 my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 # Define smart contract information
-apid = "<insert token int here>"
-app_address = "<insert address here>"
+apid = 0
+app_address = ""
 
 
 # [run game]
@@ -70,7 +70,8 @@ def runGame(player1ID, player2ID):
     player1, player2, actions, winner = play_battle_bots(player1, player2)
     updateDatabase(player1ID, player1, player2ID, player2)
     updateWebsite(actions, winner)
-    callContract(winner)
+    callContract(player1ID)
+    pass
 
 
 def getModel(playerID):
@@ -96,7 +97,7 @@ def callContract(winner):
     # send winner to smart contract
 
     # Define the parameters for the transaction
-    params = algod_client.suggested_params()
+    params = my_client.suggested_params()
     params.fee = 1000
     params.flat_fee = True
 
@@ -151,28 +152,36 @@ def wait_for_events():
     # Initialize the indexer client
     testnet_address = "https://testnet-algorand.api.purestake.io/idx2"
     idx_client = indexer.IndexerClient(algod_token, testnet_address, headers)
-    last_txn_id = 0
+    last_txn_id = 28973160
     # Loop indefinitely
     while True:
         print("Searching for Transactions...")
         # Get the transactions of the smart contract with a higher ID than the last processed ID
-        txns = idx_client.search_transactions(
-            application_id=apid,
+        txns = idx_client.search_transactions_by_address(
+            #application_id=apid,
             address = app_address,
-            #min_round=last_txn_id + 1
+            min_round=last_txn_id + 1
         )
 
-        # Iterate over the new transactions and extract the user IDs
-        print(txns)
+        # Iterate over the new transactions and extract the user ID
+        
+        opponents = {}
         for txn in txns["transactions"]:
-            # Update the last processed ID
-            last_txn_id = max(last_txn_id, txn["id"])
-            sender = encoding.encode_address(txn["sender"])
-            opponent = txn["application-args"][3].decode()
-            print(f"New bet detected: Sender: {sender}, Opponent: {opponent}")
+            print("transaction\n", txn, "\n")
+            if txn['sender'] in opponents:
+                runGame(txn['sender'], opponents[txn['sender']])
+            else:
+                local_state = idx_client.lookup_account_application_local_state(txn['sender'], include_all = True)
+                for pair in local_state['apps-local-states'][0]['key-value']:
+                #   if base64.b64decode(pair['key']).decode('utf-8') == 'bet ready':
+                #       print(base64.b64decode(pair['value']['bytes']).decode('utf-8'))
+                    if base64.b64decode(pair['key']).decode('utf-8') == 'opponent':
+                        opponents[algosdk.encoding.encode_address(base64.b64decode(pair['value']['bytes']))] = txn['sender']
 
+            # Update the last processed ID
+            last_txn_id = max(last_txn_id, txn["confirmed-round"])
         # Wait for a few seconds before checking for new transactions again
-        time.sleep(5)   
+        time.sleep(5)
 
 # Main function
 def main():
