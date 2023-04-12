@@ -29,7 +29,7 @@
 </template>
 
 <script>
-    import * as sampleJSON from "@/sampleData.json"
+    import * as allGameData from "@/games.json"
 
     export default {
         name: 'keyCheckpoint',
@@ -39,10 +39,10 @@
             return {
                 gameID: null,
                 loading: false,
-                gameData: sampleJSON,
+                gameData: allGameData,
                 gameIdEntryRules: [
                     value => {
-                        if (value && Object.prototype.hasOwnProperty.call(this.gameData["games"], this.gameID) ) return true
+                        if (value) return true
                         return 'Invalid Game ID.'
                     },
                 ],
@@ -52,14 +52,21 @@
             gameIDbuttonPress() {
                 this.loading = true
                 setTimeout(()=> {
-                    if(!Object.prototype.hasOwnProperty.call(this.gameData["games"], this.gameID)) {
+                    let gameIndex = -1;
+                    for (let i = 0; i < this.gameData.length; i++){
+                        if (this.gameData[i]['game_id'] == this.gameID){
+                            gameIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (gameIndex == -1){
                         console.log(`Game ID "${this.gameID}" not found.`);
+                        // add notifier code?
                         this.loading = false;
-                        // add some notifier code?
                         return;
                     }
-
-                    this.$router.push({name: 'viewBoard', params: { gameID: this.gameID, gameData: this.gameData }});
+                    this.$router.push({name: 'viewBoard', params: { gameJSONIndex: gameIndex, gameData: this.gameData }});
                     this.loading = false;
                 }, 500)
             },
