@@ -1,6 +1,7 @@
 <template>
   <v-container>
-    <div class="align-center justify-center pb-5">
+    <div style="height: 10vh" />
+    <div class="align-center justify-center py-5">
         <v-row>
             <v-col cols="1">
                 <div class="d-flex justify-center">
@@ -27,7 +28,7 @@
                 </v-card>
             </v-col>
             <v-col cols="3">
-                <v-expansion-panels variant="inset" class="">
+                <v-expansion-panels variant="inset">
                     <v-expansion-panel>
                         <v-expansion-panel-header>
                             Game Data
@@ -110,7 +111,7 @@
 
 
 <script>
-    import * as botJSON from "@/bots.json"
+    import * as botJSON from "@/../../q_learning/bots.json"
 
     export default {
         name: 'ConnectFour',

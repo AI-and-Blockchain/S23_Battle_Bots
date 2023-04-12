@@ -1,6 +1,8 @@
 # Q-Learning/Stuff from Main
 q_learning/__pycache__
 q_learning/venv/
+games.json
+bots.json
 
 # Website-Related
 .DS_Store
