@@ -1,9 +1,5 @@
 <template>
   <div id="app">
-    <nav>
-      <router-link to="/">Key Checkpoint</router-link> |
-      <router-link to="/viewBoard">View Board</router-link>
-    </nav>
     <router-view/>
   </div>
 </template>

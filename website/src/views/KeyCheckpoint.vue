@@ -3,9 +3,16 @@
     <v-layout align-center justify-center>
       <v-flex>
         <div v-if="!loading">
-            <div style="height: 30vh" />
+            <div class="d-flex align-items-center justify-content-center" style="height: 40vh">
+                <div v-if="showGameNotFoundAlert" class="pt-10">
+                    <div style="height: 10vh" />
+                    <v-alert color="#D31414" type="warning">
+                        The Game ID you entered  was not found. Please try again with another ID.
+                    </v-alert>
+                </div>
+            </div>
             <div class="d-flex align-items-center justify-content-center">
-            <h1>Enter Game ID:</h1>
+                <h1>Enter Game ID:</h1>
             </div>
             <div class="d-flex align-items-center justify-center pb-5">
                 <div class="d-flex justify-center text-center">
@@ -29,7 +36,7 @@
 </template>
 
 <script>
-    import * as allGameData from "@/games.json"
+    import * as allGameData from "@/../../q_learning/games.json"
 
     export default {
         name: 'keyCheckpoint',
@@ -40,6 +47,7 @@
                 gameID: null,
                 loading: false,
                 gameData: allGameData,
+                showGameNotFoundAlert: false,
                 gameIdEntryRules: [
                     value => {
                         if (value) return true
@@ -62,8 +70,14 @@
                     
                     if (gameIndex == -1){
                         console.log(`Game ID "${this.gameID}" not found.`);
-                        // add notifier code?
+                        
+                        this.showGameNotFoundAlert = true;
                         this.loading = false;
+                        setTimeout(()=> {
+                            this.showGameNotFoundAlert = false;
+                        }, 4000)
+
+                        
                         return;
                     }
                     this.$router.push({name: 'viewBoard', params: { gameJSONIndex: gameIndex, gameData: this.gameData }});
