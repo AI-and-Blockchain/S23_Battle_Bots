@@ -21,6 +21,8 @@ Prerequisites:
   1. You can generate accounts using betting/accounts.py if you do not have one already
   2. You can fund an account [here](https://testnet.algoexplorer.io/dispenser) 
 * An API token like one from [purestake](https://www.purestake.com/)
+* algosdk 
+* pyteal
 To deploy the smart contract run the following command and record the apid it gives you
 
 `python betting/deploy_app.py <your private key> <your public key> <algorand API endpoint> <API token>`
