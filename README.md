@@ -51,6 +51,7 @@ Transfer the specified bot from your account to another account
 Withdrawal the specified amount from the smart contract
 
 `python betting/run.py bet <bot or not bot> <bet amount or bot to stake> <opponent's address> <bot to play with>`
+
 Specifying bot will start a bet in which the staked asset is a bot NFT otherwise the staked asset will be algos
 
 
