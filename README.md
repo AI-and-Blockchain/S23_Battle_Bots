@@ -16,7 +16,12 @@ There are four compnents that must be set up in order to get our entire applicai
 
 ### 1. Smart Contract
 
-== ADD CONTENT HERE ==
+Prerequisites:
+* A funded algoran account 
+  1. You can generate accounts using betting/accounts.py if you do not have one already
+  2. You can fund an account [here](https://testnet.algoexplorer.io/dispenser) 
+* An API token like one from [purestake](https://www.purestake.com/)
+
 
 ### 2. Oracle
 
