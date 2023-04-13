@@ -24,7 +24,8 @@ Prerequisites:
 To deploy the smart contract run the following command and record the apid it give you
 
 `python betting/deploy_app.py <your private key> <your public key> <algorand API endpoint> <API token>`
-**==NOTE: you may want to modify the local schma in this script to allow players to have more or less bots==**
+
+**==NOTE: you may want to modify the local schema in this script to allow players to have more or less bots==**
 
 To to use betting/run.py to interact with the smart contract you must first populate it with some information
 
