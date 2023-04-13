@@ -17,7 +17,7 @@ def send_balance(client, private_key, pub,index, app_args,app_adress):
     params.fee = 1000
     amount = 100000
     # create unsigned transaction
-    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["",""])
+    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["",""]) # Put Adds here
 
     unsigned_transaction = transaction.PaymentTxn(sender, params, app_adress, amount, None)
 
@@ -57,7 +57,7 @@ def call_app(client, private_key, pub,index, app_args):
     params.fee = 1000
 
     # create unsigned transaction
-    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["",""])
+    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["",""]) # Put Adds here
 
     # sign transaction
     signed_txn = txn.sign(private_key)
@@ -113,8 +113,8 @@ def wait_for_confirmation(client, txid):
     return txinfo
 
 
-pr_a = mnemonic.to_master_derivation_key("")
-pr_b = mnemonic.to_master_derivation_key("")
+pr_a = ""
+pr_b = ""
 pu_a = ""
 pu_b = ""
 pa = encoding.decode_address(pu_a)
@@ -122,12 +122,14 @@ pb = encoding.decode_address(pu_b)
 
 
 
-algod_address = "http://localhost:4001"
-algod_token = "a" * 64
-my_client = algod.AlgodClient(algod_token, algod_address)
+algod_address = "https://testnet-algorand.api.purestake.io/ps2"
+algod_token = "" # PUT TOKEN HERE
+headers = {"X-API-KEY": algod_token}
+my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
-apid = 475
-app_adress = ""
+apid = 0 # PUT APP ID HERE
+app_address = "" # PUT APP ADDRESS HERE
+
 # opt_in_app(my_client, pr_a,pu_a, apid)
 
 params = my_client.suggested_params()
@@ -136,38 +138,31 @@ params = my_client.suggested_params()
 amount = 100000
 
 args = [b'pay']
-send_balance(my_client, pr_a, pu_a,apid, args,app_adress)
-send_balance(my_client, pr_b, pu_b,apid, args,app_adress)
-print("sent moeny")
+send_balance(my_client, pr_a, pu_a,apid, args,app_address)
+send_balance(my_client, pr_b, pu_b,apid, args,app_address)
+print("sent money")
 
 args = [b'create bot']
-
 call_app(my_client, pr_a,pu_a, apid, args)
-
 call_app(my_client, pr_b, pu_b, apid, args)
 print("bots made")
+"""
 i = 1
 args = [b'withdrawal',i.to_bytes(8, 'big')]
-
 call_app(my_client, pr_a, pu_a, apid, args)
-
 print("withdraw pass")
-
+"""
 i = 5
 k = 0
 args = [b'bet',b'not bot',i.to_bytes(8, 'big'), pb,k.to_bytes(8, 'big')]
-
 call_app(my_client, pr_a, pu_a,apid, args)
-
 i = 5
 k = 1
 args = [b'bet',b'not bot',i.to_bytes(8, 'big'),pa,k.to_bytes(8, 'big')]
-
 call_app(my_client, pr_b, pu_b,apid, args)
-
 print("bet passed")
 
-
+"""
 args = [b'resolve',pa]
 
 call_app(my_client, pr_b, pu_b,apid, args)
@@ -188,3 +183,4 @@ args = [b'delete bot',i.to_bytes(8, 'big')]
 call_app(my_client, pr_b, pu_b,apid, args)
 
 print("delete passed")
+"""
