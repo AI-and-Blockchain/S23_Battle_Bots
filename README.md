@@ -41,16 +41,16 @@ Sends money to the your account in battle bots
 `python betting/run.py create`
 Creates a bot on your account 
 
-`python run.py delete <bot id>`
+`python betting/run.py delete <bot id>`
 Deletes the specified bot from your account
 
-`python run.py transfer <bot id> <address>`
+`python betting/run.py transfer <bot id> <address>`
 Transfer the specified bot from your account to another account
 
-`python run.py withdrawal <amount>`
+`python betting/run.py withdrawal <amount>`
 Withdrawal the specified amount from the smart contract
 
-`python run.py bet <bot or not bot> <bet amount or bot to stake> <opponent's address> <bot to play with>`
+`python betting/run.py bet <bot or not bot> <bet amount or bot to stake> <opponent's address> <bot to play with>`
 
 
 
