@@ -58,8 +58,16 @@ Specifying bot will start a bet in which the staked asset is a bot NFT otherwise
 
 ### 2. Oracle
 
-== ADD CONTENT HERE ==
-> Account?
+Using the address(es) generated in the previous step populate these variables in oracle.py:
+- Algod_token //algod token (can get from https://developer.purestake.io/login)
+- Apid //app id from previous step
+- App_address //app address from previous step
+- privateKey //private key from algorand address for sending winner to contract
+- publicAdd  //algorand address for sending winner to contract
+
+Run the oracle in command line: Python3 oracle.py
+
+If this step is successful you can proceed to step 4.
 
 ### 3. Q-Learning
 
