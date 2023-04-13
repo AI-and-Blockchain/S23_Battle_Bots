@@ -22,6 +22,7 @@ Prerequisites:
   2. You can fund an account [here](https://testnet.algoexplorer.io/dispenser) 
 * An API token like one from [purestake](https://www.purestake.com/)
 To deploy the smart contract run the following command and record the apid it give you
+
 `python betting/deploy_app.py <your private key> <algorand API endpoint> <API token>`
 
 To to use betting/run.py to interact with the smart contract you must first populate it with some information
@@ -30,7 +31,7 @@ To to use betting/run.py to interact with the smart contract you must first popu
 2. set your API endpoint to the algod_endpoint variable. 
 3. set the apid you recorded previously to the apd variable
 4. set the adress of the app to the app_adress variable
-  * the app's can be found at https://testnet.algoexplorer.io/application/<apid>
+  * the app's can be found at https://testnet.algoexplorer.io/application/\<apid\>
 5. set api token to the algorand_token variable
 
 
