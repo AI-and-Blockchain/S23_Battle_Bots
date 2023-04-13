@@ -18,7 +18,7 @@ def create_app(
     local_schema: transaction.StateSchema,
 ) -> int:
     # define sender as creator
-    sender = ""
+    sender = "MCA7B6BCXZS7PWHX4B2E3D6RB73P7UUNT6QE27JFHIWYSUJILUFBDUHJI4"
     print(sender)
     # declare on_complete as NoOp
     on_complete = transaction.OnComplete.NoOpOC.real
@@ -132,14 +132,15 @@ def opt_in_app(client, private_key, pub, index):
     print("OptIn to app-id:", transaction_response["txn"]["txn"]["apid"])
     
 
-pr_a = mnemonic.to_master_derivation_key("")
-pr_b = mnemonic.to_master_derivation_key("")
+pr_a = ""
+pr_b = ""
 pu_a = ""
 pu_b = ""
 
-algod_address = "http://localhost:4001"
-algod_token = "a" * 64
-my_client = algod.AlgodClient(algod_token, algod_address)
+algod_address = "https://testnet-algorand.api.purestake.io/ps2"
+algod_token = "" # PUT TOKEN HERE
+headers = {"X-API-KEY": algod_token}
+my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 approval_program = compileTeal(approve(),mode=Mode.Application,version=6)
 clear_program = compileTeal(clear(),mode=Mode.Application,version=6)
@@ -162,55 +163,3 @@ apid = create_app(my_client,pr_b,approval_bytes,clear_bytes,
 
 opt_in_app(my_client, pr_a,pu_a, apid)
 opt_in_app(my_client, pr_b,pu_b, apid)
-app_adress = ""
-
-params = my_client.suggested_params()
-
-app_adress = ""
-amount = 5
-
-unsigned_transaction = transaction.PaymentTxn(pu_a, params, app_adress, amount, None)
-
-signed_transaction = unsigned_transaction.sign(pr_a)
-
-txid = my_client.send_transaction(signed_transaction)
-
-wait_for_confirmation(my_client, tx_id)
-
-opt_in_app(my_client, pr_b, apid)
-
-unsigned_transaction = transaction.PaymentTxn(pu_b, params, app_adress, amount, None)
-
-signed_transaction = unsigned_transaction.sign(pr_b)
-
-txid = my_client.send_transaction(signed_transaction)
-
-wait_for_confirmation(my_client, tx_id)
-
-args = [b'create bot']
-
-call_app(my_client, pr_a, apid, args)
-
-call_app(my_client, pr_b, apid, args)
-
-i = 1
-args = [b'withdrawal',i.to_bytes(8, 'big')]
-
-call_app(my_client, pr_a, apid, args)
-
-args = [b'bet',i.to_bytes(8, 'big')]
-
-call_app(my_client, pr_a, apid, args)
-
-call_app(my_client, pr_b, apid, args)
-
-i = 0
-pb = encoding.decode_address(pu_b)
-args = [b'tranfer bot',i.to_bytes(8, 'big'),pb]
-
-call_app(my_client, pr_a, apid, args)
-
-i = 0
-args = [b'delete bot',i.to_bytes(8, 'big')]
-
-call_app(my_client, pr_b, apid, args)
