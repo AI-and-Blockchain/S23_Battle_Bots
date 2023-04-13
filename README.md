@@ -31,11 +31,11 @@ There are four compnents that must be set up in order to get our entire applicai
 
 In order to get the website component up & running running, the following commands, in order, must be run while in the root folder of our repository
 
-> `cd website/src`
+`cd website/src`
 
-> `npm install` *(this may take a while)*
+`npm install` *(this may take a while)*
 
-> `npm run serve`
+`npm run serve`
 
 That's it! Now, your terminal should've provided you with two URLs to visit the working site. If you want to view the site on your own machine, paste the URL that's next to the ***Local*** section into your web browser; if you want to view the site on another machine that's on the same network as the host machine, paste the URL that's next to the ***Network*** section into that computer's web browser.
 
