@@ -40,6 +40,7 @@ To to use betting/run.py to interact with the smart contract you must first popu
 5. set api token to the algorand_token variable
 
 To interact with the smart contract you can use the following commands
+
 `python betting/run.py opt`
 opts your algorand account into the smart contract
 
