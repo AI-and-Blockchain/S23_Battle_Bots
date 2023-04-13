@@ -34,6 +34,26 @@ To to use betting/run.py to interact with the smart contract you must first popu
   * the app's can be found at https://testnet.algoexplorer.io/application/<apid\>
 5. set api token to the algorand_token variable
 
+To interact with the smart contract you can use the following commands
+`python betting/run.py pay <amount>`
+Sends money to the your account in battle bots
+
+`python betting/run.py create`
+Creates a bot on your account 
+
+`python run.py delete <bot id>`
+Deletes the specified bot from your account
+
+`python run.py transfer <bot id> <address>`
+Transfer the specified bot from your account to another account
+
+`python run.py withdrawal <amount>`
+Withdrawal the specified amount from the smart contract
+
+`python run.py bet <bot or not bot> <bet amount or bot to stake> <opponent's address> <bot to play with>`
+
+
+
 
 ### 2. Oracle
 
