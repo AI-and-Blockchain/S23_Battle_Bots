@@ -31,7 +31,7 @@ To to use betting/run.py to interact with the smart contract you must first popu
 2. set your API endpoint to the algod_endpoint variable. 
 3. set the apid you recorded previously to the apd variable
 4. set the adress of the app to the app_adress variable
-  * the app's can be found at https://testnet.algoexplorer.io/application/\<apid\>
+  * the app's can be found at https://testnet.algoexplorer.io/application/<apid\>
 5. set api token to the algorand_token variable
 
 
