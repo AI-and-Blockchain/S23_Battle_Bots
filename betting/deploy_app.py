@@ -16,10 +16,8 @@ def create_app(
     clear_program: bytes,
     global_schema: transaction.StateSchema,
     local_schema: transaction.StateSchema,
+    sender
 ) -> int:
-    # define sender as creator
-    sender = "XXVVRETEXS2DBUERBN334FLZKKOYRFT5DYK57ZLL2ZFKTHW4VK4L6XJXE4"
-    print(sender)
     # declare on_complete as NoOp
     on_complete = transaction.OnComplete.NoOpOC.real
 
@@ -79,30 +77,6 @@ def wait_for_confirmation(client, txid):
     )
     return txinfo
 
-def call_app(client, private_key, pub,index, app_args):
-    # declare sender
-    sender = pub
-    print("Call from account:", sender)
-
-    # get node suggested parameters
-    params = client.suggested_params()
-    # comment out the next two (2) lines to use suggested fees
-    params.flat_fee = True
-    params.fee = 1000
-
-    # create unsigned transaction
-    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=["J2ZDAHGLZTIAXLEL4E34LVIEM4G7U43VXJ5NZJBD44PCB7R43K4TW7Q4Z4","XXVVRETEXS2DBUERBN334FLZKKOYRFT5DYK57ZLL2ZFKTHW4VK4L6XJXE4"])
-
-    # sign transaction
-    signed_txn = txn.sign(private_key)
-    tx_id = signed_txn.transaction.get_txid()
-
-    # send transaction
-    client.send_transactions([signed_txn])
-
-    # await confirmation
-    wait_for_confirmation(client, tx_id)
-
 def opt_in_app(client, private_key, pub, index):
     # declare sender
     sender = pub
@@ -131,9 +105,10 @@ def opt_in_app(client, private_key, pub, index):
     transaction_response = client.pending_transaction_info(tx_id)
     print("OptIn to app-id:", transaction_response["txn"]["txn"]["apid"])
     
-pr_a = sys.argv[1]
-algod_endpoint = sys.argv[2]
-algod_token = sys.argv[3]
+pr = sys.argv[1]
+pu = sys.argv[2]
+algod_endpoint = sys.argv[3]
+algod_token = sys.argv[4]
 purestake_token = {'X-Api-key': algod_token}
 my_client = algod.AlgodClient(algod_token, algod_endpoint,headers=purestake_token)
 
@@ -151,7 +126,8 @@ global_schema = transaction.StateSchema(global_ints, global_bytes)
 local_schema = transaction.StateSchema(local_ints, local_bytes)
 
 
-apid = create_app(my_client,pr_a,approval_bytes,clear_bytes,
+apid = create_app(my_client,pr,approval_bytes,clear_bytes,
     global_schema,
     local_schema,
+    pu
 )
