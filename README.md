@@ -63,7 +63,13 @@ Specifying bot will start a bet in which the staked asset is a bot NFT otherwise
 
 ### 3. Q-Learning
 
-== ADD CONTENT HERE ==
+The only dependency of q_learning/ is Pytorch. The program was developed with Pytorch version 2.0 and developed with Python 3.10.
+
+That can be installed using pip, `pip install torch`.
+
+The program does NOT need to be called directly for training the battle bots in a game. Other parts of the application call it.
+
+However, `python train.py` explicitly trains the bots.
 
 ### 4. Website
 
