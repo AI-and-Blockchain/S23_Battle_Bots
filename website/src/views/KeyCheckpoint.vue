@@ -36,7 +36,7 @@
 </template>
 
 <script>
-    import * as allGameData from "@/../../q_learning/games.json"
+    import * as allGameData from "@/../../q_learning/games.json";
 
     export default {
         name: 'keyCheckpoint',

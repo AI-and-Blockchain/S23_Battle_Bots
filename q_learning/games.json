@@ -1,0 +1,20 @@
+[
+    {
+        "game_id": "testGame",
+        "player_1_id": "A",
+        "player_2_id": "B",
+        "winner_id": "BattleBotB",
+        "actions": [
+            3, 4, 3, 4, 3, 4, 3
+        ]
+    },
+    {
+        "game_id": "testGame2",
+        "player_1_id": "A",
+        "player_2_id": "B",
+        "winner_id": "BattleBotA",
+        "actions": [
+            3, 4, 3, 4, 3, 4, 3
+        ]
+    }
+]
