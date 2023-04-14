@@ -130,7 +130,8 @@ my_client = algod.AlgodClient(algod_token, algod_address, headers)
 apid = 0 # PUT APP ID HERE
 app_address = "" # PUT APP ADDRESS HERE
 
-# opt_in_app(my_client, pr_a,pu_a, apid)
+opt_in_app(my_client, pr_b,pu_b, apid)
+opt_in_app(my_client, pr_a,pu_a, apid)
 
 params = my_client.suggested_params()
 
