@@ -1,12 +1,12 @@
 from algosdk import account, encoding, mnemonic, transaction
-from q_learning.model import BattleBot, Game, load_bot, Memory
+from q_learning.model import BattleBot, Game, load_bot, delete_bot, Memory
 from q_learning.connect4 import Connect4
 from algosdk.v2client import algod
 from pyteal import *
 from q_learning.train import play_battle_bots
 from algosdk.v2client import indexer
 import algosdk
-import time, base64, uuid
+import time, base64, uuid, os, json
 
 # Connect to Algorand node
 algod_address = "https://testnet-algorand.api.purestake.io/ps2"
@@ -15,7 +15,7 @@ headers = {"X-API-KEY": algod_token}
 my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 # Define smart contract information
-apid = 0 # PUT APP ID HERE
+apid = 190912038 # PUT APP ID HERE
 app_address = "" # PUT APP ADDRESS HERE
 
 privateKey = "" #private key for sending winner
@@ -25,6 +25,9 @@ pa = encoding.decode_address(publicAdd)
 gameDone = True
 # [run game]
 
+def deleteBot(botID):
+    print(delete_bot(botID))
+    
 def runGame(player1ID, player2ID, botID1, botID2):
     gameDone = False
     memory = Memory()
@@ -148,8 +151,7 @@ def callContract(winner, player1ID, player2ID, tie):
 # Wait for events
 def wait_for_events():
     # Initialize the indexer client
-    testnet_address = "https://testnet-algorand.api.purestake.io/idx2"
-    idx_client = indexer.IndexerClient(algod_token, testnet_address, headers)
+    idx_client = indexer.IndexerClient(algod_token, algod_address, headers)
     last_txn_id = 0
     # Loop indefinitely
     while True:
@@ -176,7 +178,7 @@ def wait_for_events():
                             except:
                                 pass
                     if txn['sender'] in opponents:
-                        print(botid)
+                        print("running game")
                         runGame(txn['sender'], opponents[txn['sender']], botid[txn['sender']], botid[opponents[txn['sender']]])
                     else:
                         for pair in local_state:
@@ -185,6 +187,14 @@ def wait_for_events():
                                     opponents[algosdk.encoding.encode_address(base64.b64decode(pair['value']['bytes']))] = txn['sender']
                                 except:
                                     pass
+                elif ('application-transaction' in txn.keys()):
+                    if ('application-args' in txn['application-transaction'].keys()):
+                        try:
+                            if (base64.b64decode(txn['application-transaction']['application-args'][0])) == b'delete bot':
+                                print("deleting bot")
+                                deleteBot(str(int.from_bytes(base64.b64decode(txn['application-transaction']['application-args'][1]), 'big')))
+                        except:
+                            pass
                     # Update the last processed ID
                 last_txn_id = max(last_txn_id, txn["confirmed-round"])
         # Wait for a few seconds before checking for new transactions again
