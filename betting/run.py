@@ -4,7 +4,7 @@ from algosdk import account, mnemonic
 from algosdk import transaction
 from algosdk import encoding
 import base64
-
+import sys
 def send_balance(client, private_key, pub,index, app_args,app_adress,amt):
     # declare sender
     sender = pub
@@ -17,7 +17,7 @@ def send_balance(client, private_key, pub,index, app_args,app_adress,amt):
     params.fee = 1000
     amount = amt
     # create unsigned transaction
-    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args,accounts=[sys.argv[2],sys.argv[3]])
+    txn = transaction.ApplicationNoOpTxn(sender, params, index, app_args)
 
     unsigned_transaction = transaction.PaymentTxn(sender, params, app_adress, amount, None)
 
@@ -118,7 +118,7 @@ pu_a = ""
 pa = encoding.decode_address(pu_a)
 
 
- 
+  
 
 algod_address = ""
 algod_token = ""
@@ -127,47 +127,54 @@ my_client = algod.AlgodClient(algod_token, algod_address,headers=purestake_token
 
 apid = ""
 app_adress = ""
+print(sys.argv)
 
-if sys.argv[2] == "pay":
+account_list= [pu_a]
+if sys.argv[1] == "opt":
+   opt_in_app(my_client, pr_a, pu_a, apid)
+   print("opted into app")
+elif sys.argv[1] == "pay":
    args = [b'pay'] 
-   amount = stoi(sys.argv[3])
+   amount = int(sys.argv[2])
    send_balance(my_client, pr_a, pu_a,apid, args,app_adress,amount)
    print("sent money")
-elif sys.argv[2] == "create":
+elif sys.argv[1] == "create":
     args = [b'create bot']
     call_app(my_client, pr_a,pu_a, apid, args,account_list)
     print("bot made")
-elif sys.argv[2] == "withdrawal":
-    i = int(sys.argv[3])
+elif sys.argv[1] == "withdrawal":
+    i = int(sys.argv[2])
     args = [b'withdrawal',i.to_bytes(8, 'big')]
     call_app(my_client, pr_a, pu_a, apid, args,account_list)
     print("money withdrawaled")
-elif sys.argv[2] == "transfer":
-    i = int(sys.argv[3])
-    pb = encoding.decode_address(sys.argv[4])
+elif sys.argv[1] == "transfer":
+    i = int(sys.argv[2])
+    pb = encoding.decode_address(sys.argv[3])
     args = [b'transfer bot',i.to_bytes(8, 'big'),pb]
-    account_list = [pu_a,sys.argv[4]]
+    account_list = [pu_a,sys.argv[3]]
     call_app(my_client, pr_a, pu_a,apid, args,account_list)
     print("bot transfered")
-elif sys.argv[2] == "delete":
-    i = int(sys.argv[3])
+elif sys.argv[1] == "delete":
+    i = int(sys.argv[2])
     args = [b'delete bot',i.to_bytes(8, 'big')]
-    call_app(my_client, pr_b, pu_b,apid, args,account_list)
+    call_app(my_client, pr_a, pu_a,apid, args,account_list)
     print("bot deleted")
-elif sys.argv[2] == "bet" and sys.argv[3] == "bot":
-    bet_amount = int(sys.argv[4])
-    oppnent = sys.argv[5]
-    pb = encoding.decode_address(sys.argv[6])
-    botid = int(sys.argv[7])
-    account_list = [pu_a,sys.argv[6]]
+elif sys.argv[1] == "bet" and sys.argv[2] == "bot":
+    bet_amount = int(sys.argv[3])
+    oppnent = sys.argv[4]
+    pb = encoding.decode_address(oppnent)
+    botid = int(sys.argv[5])
+    account_list = [pu_a,oppnent]
     args = [b'bet',b'bot',bet_amount.to_bytes(8, 'big'), pb,botid.to_bytes(8, 'big')]
     call_app(my_client, pr_a, pu_a,apid, args,account_list)
     print("bet made")
-elif sys.argv[2] == "bet" and sys.argv[5] == "not bot":
-    bet_amount = int(sys.argv[6])
-    botid = int(sys.argv[7])
+elif sys.argv[1] == "bet" and sys.argv[2] == "not_bot":
+    bet_amount = int(sys.argv[3])
+    oppnent = sys.argv[4]
+    pb = encoding.decode_address(oppnent)
+    botid = int(sys.argv[5])
+    account_list = [pu_a,oppnent]
     args = [b'bet',b'not bot',bet_amount.to_bytes(8, 'big'), pb,botid.to_bytes(8, 'big')]
     call_app(my_client, pr_a, pu_a,apid, args,account_list)
     print("bet made")
-
 
