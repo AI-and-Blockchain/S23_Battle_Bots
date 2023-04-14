@@ -275,6 +275,30 @@ def load_bot(bot_id):
     print("Bot with bot_id", bot_id, "not found")
     return None
 
+def delete_bot(bot_id):
+    '''Finds a bot from the bots data file using the bot ID and
+    deletes it.'''
+    # Initialize the bots data file if it does not exist
+    if not os.path.exists('./q_learning/bots.json'):
+        with open('./q_learning/bots.json', "w") as f:
+            json.dump([], f)
+
+    # Load the bots data file
+    with open('./q_learning/bots.json', "r") as f:
+        bots_data = json.load(f)
+
+    # Find the bot with the given bot ID
+    for bot_data in bots_data:
+        if bot_data['bot_id'] == bot_id:
+            print("Found bot with bot_id", bot_id)
+
+            # Remove the bot from the bots data file
+            bots_data.remove(bot_data)
+            return True
+
+    print("Bot with bot_id", bot_id, "not found")
+    return None
+
 def load_game(game_id):
     '''Loads a game from the games data file using the game ID.'''
     if not os.path.exists('./q_learning/games.json'):
