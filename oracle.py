@@ -15,7 +15,7 @@ headers = {"X-API-KEY": algod_token}
 my_client = algod.AlgodClient(algod_token, algod_address, headers)
 
 # Define smart contract information
-apid = 190912038 # PUT APP ID HERE
+apid = 0 # PUT APP ID HERE
 app_address = "" # PUT APP ADDRESS HERE
 
 privateKey = "" #private key for sending winner
