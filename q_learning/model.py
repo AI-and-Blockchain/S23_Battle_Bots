@@ -294,6 +294,10 @@ def delete_bot(bot_id):
 
             # Remove the bot from the bots data file
             bots_data.remove(bot_data)
+            try:
+                os.remove('./q_learning/models/' + bot_id + '.pt')
+            except:
+                pass
             return True
 
     print("Bot with bot_id", bot_id, "not found")

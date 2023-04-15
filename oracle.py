@@ -151,7 +151,8 @@ def callContract(winner, player1ID, player2ID, tie):
 # Wait for events
 def wait_for_events():
     # Initialize the indexer client
-    idx_client = indexer.IndexerClient(algod_token, algod_address, headers)
+    indexer_address = "https://testnet-algorand.api.purestake.io/idx2"
+    idx_client = indexer.IndexerClient(algod_token, indexer_address, headers)
     last_txn_id = 0
     # Loop indefinitely
     while True:
