@@ -57,15 +57,15 @@ def approve():
                 App.localPut(Txn.sender(), Bytes("bot"),Txn.application_args[4]), #this is the bot id 
                 check_bet_status         
               )
-        ).Else(App.globalPut(Bytes("bonk"),Bytes("bonk"))) 
-    ).ElseIf(Txn.application_args[1] == Bytes("bot")
+        ).Else(Return(Int(0))) 
+    ).ElseIf(And(Txn.application_args[1] == Bytes("bot"),App.localGet(Txn.sender(),Txn.application_args[4]) == Int(1),App.localGet(Txn.sender(),Txn.application_args[2]) == Int(1))
     ).Then(Seq(
                 App.localPut(Txn.sender(), Bytes("bot staked"),Txn.application_args[2]),
                 App.localPut(Txn.sender(), Bytes("opponent"),Txn.application_args[3]),
                 App.localPut(Txn.sender(), Bytes("bot"),Txn.application_args[4]), 
                 check_bet_status
             )
-    ).Else(App.globalPut(Bytes("bonk2"),Bytes("bonk2")))
+    ).Else(Return(Int(0)))
     
     
     
@@ -73,7 +73,7 @@ def approve():
  
    
     
-    process_payment = Seq(App.localPut(Gtxn[0].sender(),Bytes("balance"),App.localGet(Gtxn[0].sender(),Bytes("balance"))+Gtxn[0].amount()),App.localPut(Gtxn[0].sender(), Bytes("bruh"), Bytes("bruh")))
+    process_payment = Seq(App.localPut(Gtxn[0].sender(),Bytes("balance"),App.localGet(Gtxn[0].sender(),Bytes("balance"))+Gtxn[0].amount()))
     
     withdrawal = Cond([App.localGet(Txn.sender(),Bytes("balance")) >= Btoi(Txn.application_args[1]),
                         Seq(
@@ -112,28 +112,29 @@ def approve():
                        )
     
     check_global_txn = And(Gtxn[0].type_enum() == TxnType.Payment,
-                           Gtxn[1].application_args[0] == Bytes("pay"),
                            Gtxn[0].receiver() == Global.current_application_address())
     
     
-    no_op = If(Global.group_size() > Int(1)
+    no_op = If(And(Global.group_size() > Int(1),Txn.application_args[0] == Bytes("pay"))
         ).Then(
             If(check_global_txn)
             .Then(process_payment)
             .Else(Return(Int(0)))
-    ).ElseIf(And(Txn.application_args[0] == Bytes("bet"),App.localGet(Txn.sender(),Bytes("bet ready")) != Bytes("true"))
+    ).ElseIf(And(Global.group_size() > Int(1),Txn.application_args[0] == Bytes("bet"),App.localGet(Txn.sender(),Bytes("bet ready")) != Bytes("true"))
     ).Then(bet
     ).ElseIf(Txn.application_args[0] == Bytes("withdrawal")
     ).Then(withdrawal
     ).ElseIf(Txn.application_args[0] == Bytes("resolve")
     ).Then(payout
+    ).ElseIf(Txn.application_args[0] == Bytes("tie")
+    ).Then(cleanup
     ).ElseIf(Txn.application_args[0] == Bytes("create bot")
     ).Then(create_bot
     ).ElseIf(And(Txn.application_args[0] == Bytes("transfer bot"),App.localGet(Txn.sender(),Bytes("bot")) != Txn.application_args[1],App.localGet(Txn.sender(),Bytes("bot staked")) != Txn.application_args[1])
     ).Then(transfer_bot
     ).ElseIf(And(Txn.application_args[0] == Bytes("delete bot"),App.localGet(Txn.sender(),Bytes("bot")) != Txn.application_args[1],App.localGet(Txn.sender(),Bytes("bot staked")) != Txn.application_args[1])
     ).Then(delete_bot
-    ).Else(App.globalPut(Bytes("bonk3"),Bytes("bonk3")))
+    ).Else(App.globalPut(Bytes("bonk"), Bytes("bonk")))
     
     return Seq(Cond([Txn.application_id() == Int(0), setup],
                 [Txn.on_completion() == OnComplete.OptIn, optin],
