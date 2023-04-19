@@ -120,7 +120,7 @@ def approve():
             If(check_global_txn)
             .Then(process_payment)
             .Else(Return(Int(0)))
-    ).ElseIf(And(Global.group_size() > Int(1),Txn.application_args[0] == Bytes("bet"),App.localGet(Txn.sender(),Bytes("bet ready")) != Bytes("true"))
+    ).ElseIf(And(Txn.application_args[0] == Bytes("bet"),App.localGet(Txn.sender(),Bytes("bet ready")) != Bytes("true"))
     ).Then(bet
     ).ElseIf(Txn.application_args[0] == Bytes("withdrawal")
     ).Then(withdrawal
