@@ -51,7 +51,6 @@ def approve():
     ).Then(
         If(And(App.localGet(Txn.sender(),Bytes("balance")) >= Btoi(Txn.application_args[2]),App.localGet(Txn.sender(),Txn.application_args[4]) == Int(1))
         ).Then(Seq(
-                App.localPut(Txn.sender(), Bytes("bet"),Btoi(Txn.application_args[2])),
                 App.localPut(Txn.sender(), Bytes("bet amount"),Btoi(Txn.application_args[2])),
                 App.localPut(Txn.sender(), Bytes("opponent"),Txn.application_args[3]),
                 App.localPut(Txn.sender(), Bytes("bot"),Txn.application_args[4]), #this is the bot id 
